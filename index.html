@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#16181D">
+<title>ISAW News · Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F6F3; --card:#FFFFFF; --ink:#16181D; --mute:#6B7178; --faint:#9AA0A6;
+    --line:#E4E5E0; --line2:#EFEFEA; --gold:#FFD100; --goldink:#14181F;
+    --crit:#C8102E; --ok:#1C7C4A; --hi:#B7791F;
+    --r:8px; --r-lg:14px; --col:780px;
+    --serif:"Newsreader",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  input,textarea,select{font:inherit;color:inherit}
+  a{color:inherit}
+
+  header.mast{background:var(--ink);color:#fff}
+  .mast-in{max-width:var(--col);margin:0 auto;padding:calc(env(safe-area-inset-top) + 14px) 20px 0;display:flex;align-items:flex-end;justify-content:space-between}
+  .brand{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:-.01em;line-height:1}
+  .brand em{font-style:italic;color:var(--gold)}
+  .dateline{font-size:12px;color:#AEB4BB;letter-spacing:.08em;text-transform:uppercase;padding-bottom:3px}
+  nav.tabs{max-width:var(--col);margin:0 auto;padding:10px 20px 0;display:flex;gap:22px;align-items:center}
+  nav.tabs button{padding:8px 0 12px;color:#AEB4BB;font-weight:500;font-size:15px;border-bottom:2px solid transparent}
+  nav.tabs button[aria-selected=true]{color:#fff;border-bottom-color:var(--gold)}
+  nav.tabs .spacer{flex:1}
+  nav.tabs .sort{color:var(--gold);font-weight:600;font-size:14px;padding-bottom:12px}
+  nav.tabs .count{background:#2A2E36;color:#fff;border-radius:999px;padding:1px 8px;font-size:12px;margin-left:6px;font-weight:600}
+
+  main{max-width:var(--col);margin:0 auto;padding:0 20px 64px}
+  .empty{padding:64px 20px;text-align:center;color:var(--mute)}
+  .empty b{display:block;font-family:var(--serif);font-size:20px;color:var(--ink);margin-bottom:6px;font-weight:500}
+
+  .story{border-bottom:1px solid var(--line);padding:18px 0}
+  .story .top{display:flex;align-items:center;gap:10px;margin-bottom:7px;font-size:13px;color:var(--mute);flex-wrap:wrap}
+  .ha{display:inline-flex;align-items:center;gap:5px;font-weight:600;color:var(--mute)}
+  .ha .dot{width:7px;height:7px;border-radius:50%;background:var(--line)}
+  .ha.h5 .dot,.ha.h4 .dot{background:var(--gold)}
+  .ha.h5,.ha.h4{color:var(--hi)}
+  .type-tag{font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--ink);background:var(--line2);padding:2px 8px;border-radius:5px;text-transform:capitalize}
+  .story h3{margin:0;font-family:var(--serif);font-weight:500;font-size:21px;line-height:1.25;letter-spacing:-.005em}
+  .story .note{margin-top:6px;color:var(--mute);font-size:15px}
+  .story .drawer{max-height:0;overflow:hidden;transition:max-height .22s ease}
+  .story.open .drawer{max-height:460px}
+  @media (prefers-reduced-motion:reduce){.story .drawer{transition:none}}
+  .story .summary{margin-top:12px;color:var(--ink);font-size:15px}
+  .story .row-actions{display:flex;gap:10px;margin-top:14px}
+  .btn{border:1px solid var(--line);background:var(--card);border-radius:var(--r);padding:11px 16px;font-weight:600;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none}
+  .btn:active{transform:translateY(1px)}
+  .btn.keep{background:var(--gold);border-color:var(--gold);color:var(--goldink);flex:1}
+  .btn.ghost{color:var(--mute)}
+  .btn:disabled{opacity:.55}
+
+  .sheet{position:fixed;inset:0;background:var(--paper);z-index:20;overflow:auto;display:none}
+  .sheet.on{display:block}
+  .sheet-bar{position:sticky;top:0;z-index:2;background:rgba(22,24,29,.98);color:#fff}
+  .sheet-bar-in{max-width:1060px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 12px) 20px 12px;display:flex;align-items:center;justify-content:space-between}
+  .sheet-bar .back{color:#fff;font-weight:500}
+  .sheet-bar .st{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#AEB4BB}
+
+  .editor{max-width:1060px;margin:0 auto;padding:24px 20px 100px;display:grid;grid-template-columns:1fr;gap:24px}
+  @media (min-width:900px){ .editor{grid-template-columns:minmax(0,1fr) 320px;gap:36px;align-items:start} .side{position:sticky;top:82px} }
+
+  .fld{margin-bottom:20px}
+  .fld > label{display:block;font-size:13px;font-weight:600;color:var(--mute);margin-bottom:7px}
+  .fld input[type=text],.fld input[type=date],.fld textarea,.fld select{width:100%;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 13px;font-size:16px;line-height:1.45}
+  .fld textarea{resize:vertical;min-height:84px;font-family:var(--sans)}
+  .fld input:focus,.fld textarea:focus,.fld select:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgba(22,24,29,.08)}
+  .fld .help{font-size:13px;color:var(--faint);margin-top:6px}
+  .fld.headline input{font-family:var(--serif);font-size:22px;font-weight:500}
+  .fld.why textarea{border-left:3px solid var(--gold)}
+  .side .fld{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:15px;margin-bottom:14px}
+  .side .fld > label{margin-bottom:10px}
+
+  .src{display:flex;gap:8px;margin-bottom:8px}
+  .src input{flex:1;min-width:0}
+  .src .open{flex:0 0 auto;border:1px solid var(--line);background:var(--card);border-radius:var(--r);padding:0 13px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;text-decoration:none}
+  .src .rm{flex:0 0 auto;border:1px solid var(--line);background:var(--card);border-radius:var(--r);width:42px;color:var(--mute);font-size:18px}
+  .addsrc{border:1px dashed var(--line);background:transparent;border-radius:var(--r);padding:9px;width:100%;color:var(--mute);font-weight:500;font-size:14px}
+
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 13px;font-size:14px;color:var(--ink);line-height:1.2}
+  .chip[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .chip.crit[aria-pressed=true]{background:var(--crit);border-color:var(--crit)}
+
+  .score{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+  .score:last-child{margin-bottom:0}
+  .score .lbl{font-size:14px}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  .seg button{width:34px;padding:7px 0;font-size:14px;font-weight:600;color:var(--mute);border-right:1px solid var(--line)}
+  .seg button:last-child{border-right:0}
+  .seg button[aria-pressed=true]{background:var(--ink);color:#fff}
+
+  .tagset{margin-bottom:12px}
+  .tagset .gl{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:7px}
+
+  .gen-head{border-top:1px solid var(--line);padding-top:22px;margin-bottom:12px}
+  .gen-head h2{font-family:var(--serif);font-weight:500;font-size:22px;margin:0}
+  .fmtpick{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+  .out{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);margin-bottom:12px;overflow:hidden}
+  .out .oh{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--line2)}
+  .out .on{font-family:var(--serif);font-size:16px;font-weight:500}
+  .out .oc{border:1px solid var(--line);border-radius:6px;padding:5px 12px;font-size:13px;font-weight:600}
+  .out .ob{padding:14px;font-size:15px;white-space:pre-wrap;line-height:1.5}
+  .cp{margin-bottom:12px}
+  .cp:last-child{margin-bottom:0}
+  .cp .l{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin-bottom:4px}
+  .cp ul{margin:5px 0 0;padding-left:20px}
+  .cp li{margin-bottom:5px}
+
+  .savebar{position:fixed;left:0;right:0;bottom:0;z-index:3;background:rgba(246,246,243,.96);border-top:1px solid var(--line)}
+  .savebar-in{max-width:1060px;margin:0 auto;padding:12px 20px calc(env(safe-area-inset-bottom) + 12px);display:flex;gap:10px}
+  .savebar .btn{flex:1}
+  .savebar .primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .savebar .gen{background:var(--gold);border-color:var(--gold);color:var(--goldink)}
+
+  .load{position:fixed;inset:0;z-index:40;background:rgba(246,246,243,.86);display:none;align-items:center;justify-content:center}
+  .load.on{display:flex}
+  .load .box{text-align:center}
+  .wire{width:52px;height:52px;margin:0 auto 16px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--gold);animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .load .msg{font-family:var(--serif);font-size:19px}
+  .load .sub{font-size:14px;color:var(--mute);margin-top:4px}
+  @media (prefers-reduced-motion:reduce){.wire{animation:none;border-top-color:var(--line)}}
+
+  .gate{max-width:400px;margin:0 auto;padding:72px 24px}
+  .gate .brand{color:var(--ink);font-size:34px;margin-bottom:6px}
+  .gate .brand em{color:var(--hi)}
+  .gate p{color:var(--mute);margin:0 0 22px}
+  .gate input{width:100%;padding:13px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);margin-bottom:11px;font-size:16px}
+  .gate button{width:100%;padding:14px;border-radius:var(--r);background:var(--ink);color:#fff;font-weight:600}
+
+  .toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:999px;font-size:14px;z-index:50;opacity:0;pointer-events:none;transition:opacity .2s}
+  .toast.on{opacity:1}
+  @media (prefers-reduced-motion:reduce){.toast{transition:none}}
+  :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<div id="gate" class="gate" hidden>
+  <div class="brand">ISAW <em>News</em></div>
+  <p>Curation desk. Sign in to open the wire.</p>
+  <input id="gateEmail" type="email" placeholder="Email" autocomplete="username">
+  <input id="gatePass" type="password" placeholder="Password" autocomplete="current-password">
+  <button id="gateGo">Sign in</button>
+  <div id="gateMsg" style="color:var(--crit);font-size:14px;margin-top:10px;min-height:18px"></div>
+</div>
+
+<div id="app" hidden>
+  <header class="mast">
+    <div class="mast-in">
+      <div class="brand">ISAW <em>News</em></div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="dateline" id="dateline"></div>
+        <button id="signOut" style="color:#AEB4BB;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding-bottom:3px">Sign out</button>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="queue">Wire <span class="count" id="cNew">0</span></button>
+      <button role="tab" aria-selected="false" data-tab="drafts">Desk <span class="count" id="cDraft">0</span></button>
+      <span class="spacer"></span>
+      <button class="sort" id="sortToggle">Human angle</button>
+    </nav>
+  </header>
+  <main>
+    <div id="queue"></div>
+    <div id="drafts" hidden></div>
+  </main>
+</div>
+
+<div id="sheet" class="sheet" role="dialog" aria-modal="true">
+  <div class="sheet-bar"><div class="sheet-bar-in">
+    <button class="back" id="sheetClose">‹ Desk</button>
+    <span class="st" id="sheetState">Draft</span>
+  </div></div>
+  <div class="editor">
+    <div class="mainCol">
+      <div class="fld headline"><label for="fHeadline">Headline</label><input id="fHeadline" type="text"></div>
+      <div class="fld"><label for="fWhat">What happened</label><textarea id="fWhat" style="min-height:110px"></textarea></div>
+      <div class="fld"><label for="fMech">How it worked</label><textarea id="fMech"></textarea><div class="help">The mechanism. Leave blank if there isn't one.</div></div>
+      <div class="fld why"><label for="fWhy">Why it matters</label><textarea id="fWhy" style="min-height:110px"></textarea><div class="help">The educational angle. Everything else hangs off this.</div></div>
+      <div class="fld"><label for="fAction">What to do</label><textarea id="fAction"></textarea></div>
+      <div class="fld"><label>Sources</label><div id="srcList"></div><button class="addsrc" id="addSrc">+ Add source</button></div>
+      <div id="genWrap">
+        <div class="gen-head"><h2>Outputs</h2></div>
+        <div class="fmtpick" id="fmtPick"></div>
+        <div id="outputs"></div>
+      </div>
+    </div>
+    <div class="side">
+      <div class="fld"><label for="fDate">Date of incident</label><input id="fDate" type="date"></div>
+      <div class="fld"><label for="fLoc">Location</label><input id="fLoc" type="text" placeholder="e.g. UK, Global"></div>
+      <div class="fld"><label>Incident type</label><div class="chips" id="incType"></div></div>
+      <div class="fld"><label>Importance</label><div class="chips" id="importance"></div></div>
+      <div class="fld"><label>Scores</label><div id="scores"></div></div>
+      <div class="fld"><label>Tags</label><div id="tags"></div></div>
+    </div>
+  </div>
+  <div class="savebar"><div class="savebar-in">
+    <button class="btn" id="saveDraft">Save draft</button>
+    <button class="btn primary" id="saveReady">Mark ready</button>
+    <button class="btn gen" id="genBtn">Generate</button>
+  </div></div>
+</div>
+
+<div id="load" class="load"><div class="box"><div class="wire"></div><div class="msg" id="loadMsg">Working</div><div class="sub" id="loadSub"></div></div></div>
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL = "https://xvymazorpsuyylbliihw.supabase.co";
+const ANON = "sb_publishable_nllLKPRo7Tr6XYkA1wzIsw_X01mXhU0";
+
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => [...el.querySelectorAll(s)];
+let sb, tags = [], queue = [], drafts = [], editing = null;
+let sortMode = localStorage.getItem("isaw_sort") ?? "human";
+
+const INCIDENT = [["breach","Breach"],["hack","Hack"],["vulnerability","Vulnerability"],["ransomware","Ransomware"],["scam","Scam"],["data_leak","Data leak"],["insider","Insider"],["outage","Outage"],["legal","Legal"],["other","Other"]];
+const IMPORTANCE = [["low","Low"],["normal","Normal"],["high","High"],["critical","Critical"]];
+const SCORES = [["reach","Reach"],["actionability","Action"],["novelty","Novelty"],["audience_fit","Fit"],["overall","Overall"]];
+const FORMATS = [["slack","Slack"],["newsletter_short","Newsletter short"],["newsletter_long","Newsletter long"],["board","Board"],["technical","Technical"],["champion_pack","Champion pack"]];
+const GROUP_LABEL = { function:"Function", technology:"Technology", threat:"Threat", sector:"Sector" };
+
+$("#dateline").textContent = new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+
+sb = createClient(SUPABASE_URL, ANON);
+
+(async function init(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if (session) await start(); else $("#gate").hidden = false;
+})();
+
+async function doSignIn(){
+  const email = $("#gateEmail").value.trim(), password = $("#gatePass").value;
+  if (!email || !password){ $("#gateMsg").textContent = "Enter your email and password."; return; }
+  $("#gateGo").disabled = true; $("#gateMsg").textContent = "";
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  $("#gateGo").disabled = false;
+  if (error){ $("#gateMsg").textContent = "That email or password didn't work."; return; }
+  $("#gate").hidden = true;
+  await start();
+}
+$("#gateGo").onclick = doSignIn;
+$("#gatePass").addEventListener("keydown", e => { if (e.key==="Enter") doSignIn(); });
+
+$("#signOut").onclick = async () => { await sb.auth.signOut(); location.reload(); };
+
+async function start(){
+  const { error } = await sb.from("tags").select("id").limit(1);
+  if (error){ $("#gate").hidden=false; $("#gateMsg").textContent="Signed in, but the desk didn't load: "+error.message; return; }
+  $("#app").hidden = false;
+  tags = (await sb.from("tags").select("*").order("kind").order("name")).data ?? [];
+  buildIncident(); buildImportance(); buildScores(); buildTags(); buildFmtPick();
+  await Promise.all([loadQueue(), loadDrafts()]);
+}
+
+function showLoad(msg, sub=""){ $("#loadMsg").textContent=msg; $("#loadSub").textContent=sub; $("#load").classList.add("on"); }
+function hideLoad(){ $("#load").classList.remove("on"); }
+
+$$("nav.tabs [role=tab]").forEach(b => b.onclick = () => {
+  $$("nav.tabs [role=tab]").forEach(x => x.setAttribute("aria-selected", x===b));
+  $("#queue").hidden = b.dataset.tab!=="queue";
+  $("#drafts").hidden = b.dataset.tab!=="drafts";
+  $("#sortToggle").style.visibility = b.dataset.tab==="queue" ? "visible" : "hidden";
+});
+$("#sortToggle").onclick = () => { sortMode = sortMode==="human"?"latest":"human"; localStorage.setItem("isaw_sort",sortMode); loadQueue(); };
+
+async function loadQueue(){
+  let q = sb.from("raw_items")
+    .select("id,url,title,summary,published_at,fetched_at,human_angle,angle_note,story_type,sources(name,weight)")
+    .eq("status","new").limit(200);
+  q = sortMode==="human"
+    ? q.order("human_angle",{ascending:false,nullsFirst:false}).order("published_at",{ascending:false,nullsFirst:false})
+    : q.order("published_at",{ascending:false,nullsFirst:false});
+  queue = (await q).data ?? [];
+  $("#cNew").textContent = queue.length;
+  $("#sortToggle").textContent = sortMode==="human" ? "Human angle" : "Latest";
+  renderQueue();
+}
+function renderQueue(){
+  const el = $("#queue");
+  if (!queue.length){ el.innerHTML = `<div class="empty"><b>The wire is clear</b>New stories arrive every 15 minutes.</div>`; return; }
+  el.innerHTML = queue.map(i => `
+    <article class="story" data-id="${i.id}">
+      <div class="top">
+        ${angle(i.human_angle)}
+        ${i.story_type ? `<span class="type-tag">${esc(storyTypeLabel(i.story_type))}</span>` : ""}
+        <span>${esc(i.sources?.name ?? "")}</span>
+        <span>${ago(i.published_at ?? i.fetched_at)}</span>
+      </div>
+      <h3>${esc(i.title)}</h3>
+      ${i.angle_note && !/^triage failed/.test(i.angle_note) ? `<div class="note">${esc(i.angle_note)}</div>` : ""}
+      <div class="drawer"><div class="inner">
+        <div class="summary">${esc(i.summary ?? "No summary in the feed.")}</div>
+        <div class="row-actions">
+          <button class="btn keep" data-act="keep">Keep and draft</button>
+          <button class="btn ghost" data-act="skip">Skip</button>
+          <a class="btn ghost" href="${esc(i.url)}" target="_blank" rel="noopener" data-act="open">Open ↗</a>
+        </div>
+      </div></div>
+    </article>`).join("");
+}
+$("#queue").addEventListener("click", async e => {
+  const art = e.target.closest(".story"); if (!art) return;
+  const id = art.dataset.id, item = queue.find(x=>x.id===id);
+  const act = e.target.closest("[data-act]")?.dataset.act;
+  if (!act){ art.classList.toggle("open"); return; }
+  if (act==="open") return;
+  if (act==="skip"){
+    await sb.from("raw_items").update({status:"skipped"}).eq("id",id);
+    queue = queue.filter(x=>x.id!==id); $("#cNew").textContent=queue.length; art.remove(); toast("Skipped"); return;
+  }
+  if (act==="keep"){
+    const base = { raw_item_id:id, headline:item.title, what_happened:item.summary ?? "", source_urls:[item.url], status:"draft", importance:"normal", incident_type:"other", tag_ids:[] };
+    showLoad("Reading the story","Fetching the article and drafting");
+    try {
+      const { data, error } = await sb.functions.invoke("draft-story", { body:{ raw_item_id:id } });
+      hideLoad();
+      if (error || data?.error){ toast("Draft failed, opening blank"); openSheet(base); }
+      else openSheet({ ...base, ...data, status:"draft" });
+    } catch { hideLoad(); toast("Draft failed, opening blank"); openSheet(base); }
+  }
+});
+
+async function loadDrafts(){
+  const { data } = await sb.from("stories_view").select("*").in("status",["draft","ready"]).order("created_at",{ascending:false});
+  drafts = data ?? [];
+  $("#cDraft").textContent = drafts.length;
+  const el = $("#drafts");
+  if (!drafts.length){ el.innerHTML = `<div class="empty"><b>Nothing on the desk yet</b>Keep a story from the wire and it lands here.</div>`; return; }
+  el.innerHTML = drafts.map(s => `
+    <article class="story" data-id="${s.id}">
+      <div class="top">
+        <span class="type-tag">${esc(s.incident_type ?? "story")}</span>
+        <span>${esc(s.importance)}</span>
+        <span>${s.status==="ready" ? "ready" : "draft"}</span>
+        <span>${ago(s.created_at)}</span>
+      </div>
+      <h3>${esc(s.headline)}</h3>
+      <div class="note">${esc(s.why_it_matters)}</div>
+    </article>`).join("");
+}
+$("#drafts").addEventListener("click", e => {
+  const d = e.target.closest(".story"); if (!d) return;
+  openSheet(drafts.find(x=>x.id===d.dataset.id));
+});
+
+function buildIncident(){
+  $("#incType").innerHTML = INCIDENT.map(([v,l]) => `<button class="chip" data-v="${v}">${l}</button>`).join("");
+  $("#incType").onclick = e => { const b=e.target.closest(".chip"); if(!b) return; $$("#incType .chip").forEach(x=>x.setAttribute("aria-pressed",x===b)); };
+}
+function buildImportance(){
+  $("#importance").innerHTML = IMPORTANCE.map(([v,l]) => `<button class="chip ${v==="critical"?"crit":""}" data-v="${v}">${l}</button>`).join("");
+  $("#importance").onclick = e => { const b=e.target.closest(".chip"); if(!b) return; $$("#importance .chip").forEach(x=>x.setAttribute("aria-pressed",x===b)); };
+}
+function buildScores(){
+  $("#scores").innerHTML = SCORES.map(([k,l]) => `<div class="score"><span class="lbl">${l}</span><div class="seg" data-score="${k}">${[1,2,3,4,5].map(n=>`<button data-v="${n}">${n}</button>`).join("")}</div></div>`).join("");
+  $$("#scores .seg").forEach(seg => seg.onclick = e => {
+    const b=e.target.closest("button"); if(!b) return;
+    $$("button",seg).forEach(x=>x.setAttribute("aria-pressed",x===b));
+    if (seg.dataset.score!=="overall") suggestOverall();
+  });
+}
+function suggestOverall(){
+  const vals = SCORES.slice(0,4).map(([k]) => +($(`[data-score=${k}] [aria-pressed=true]`)?.dataset.v ?? 0)).filter(Boolean);
+  if (vals.length<4 || $(`[data-score=overall] [aria-pressed=true]`)) return;
+  const avg = Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+  $$(`[data-score=overall] button`).forEach(x=>x.setAttribute("aria-pressed",+x.dataset.v===avg));
+}
+function buildTags(){
+  const groups = {};
+  for (const t of tags){ (groups[t.kind] ??= []).push(t); }
+  $("#tags").innerHTML = Object.keys(GROUP_LABEL).filter(k=>groups[k]).map(k => `
+    <div class="tagset"><div class="gl">${GROUP_LABEL[k]}</div>
+      <div class="chips">${groups[k].map(t=>`<button class="chip" data-id="${t.id}">${esc(t.name)}</button>`).join("")}</div>
+    </div>`).join("");
+  $("#tags").onclick = e => { const c=e.target.closest(".chip"); if(c) c.setAttribute("aria-pressed", c.getAttribute("aria-pressed")!=="true"); };
+}
+function buildFmtPick(){
+  $("#fmtPick").innerHTML = FORMATS.map(([v,l]) => `<button class="chip" data-fmt="${v}" aria-pressed="true">${l}</button>`).join("");
+  $("#fmtPick").onclick = e => { const c=e.target.closest(".chip"); if(c) c.setAttribute("aria-pressed", c.getAttribute("aria-pressed")!=="true"); };
+}
+
+function renderSources(urls){
+  const list = urls.length ? urls : [""];
+  $("#srcList").innerHTML = list.map(u => `
+    <div class="src">
+      <input type="text" value="${esc(u)}" placeholder="https://">
+      <a class="open" href="${esc(u||"#")}" target="_blank" rel="noopener" ${u?"":'aria-disabled="true" style="opacity:.4;pointer-events:none"'}>Open ↗</a>
+      <button class="rm" title="Remove">×</button>
+    </div>`).join("");
+}
+$("#srcList").addEventListener("input", e => {
+  if (e.target.tagName!=="INPUT") return;
+  const a = $(".open", e.target.closest(".src")), v = e.target.value.trim();
+  if (v){ a.href=v; a.style.opacity=""; a.style.pointerEvents=""; a.removeAttribute("aria-disabled"); }
+});
+$("#srcList").addEventListener("click", e => { if (e.target.classList.contains("rm")) e.target.closest(".src").remove(); });
+$("#addSrc").onclick = () => {
+  const div = document.createElement("div"); div.className="src";
+  div.innerHTML = `<input type="text" placeholder="https://"><a class="open" href="#" target="_blank" rel="noopener" aria-disabled="true" style="opacity:.4;pointer-events:none">Open ↗</a><button class="rm" title="Remove">×</button>`;
+  $("#srcList").appendChild(div); $("input",div).focus();
+};
+function collectSources(){ return $$("#srcList .src input").map(i=>i.value.trim()).filter(Boolean); }
+
+function openSheet(story){
+  editing = story;
+  $("#sheetState").textContent = story.id ? (story.status==="ready"?"Ready":"Draft") : "New";
+  $("#fHeadline").value = story.headline ?? "";
+  $("#fWhat").value = story.what_happened ?? "";
+  $("#fMech").value = story.mechanism ?? "";
+  $("#fWhy").value = story.why_it_matters ?? "";
+  $("#fAction").value = story.action ?? "";
+  $("#fDate").value = story.occurred_on ?? "";
+  $("#fLoc").value = story.location ?? "";
+  renderSources(story.source_urls ?? []);
+  $$("#incType .chip").forEach(c=>c.setAttribute("aria-pressed", c.dataset.v===(story.incident_type ?? "other")));
+  $$("#importance .chip").forEach(c=>c.setAttribute("aria-pressed", c.dataset.v===(story.importance ?? "normal")));
+  SCORES.forEach(([k]) => $$(`[data-score=${k}] button`).forEach(x=>x.setAttribute("aria-pressed", +x.dataset.v===story["score_"+k])));
+  $$("#tags .chip").forEach(c=>c.setAttribute("aria-pressed",(story.tag_ids ?? []).includes(c.dataset.id)));
+  if (!story.score_overall) suggestOverall();
+  $("#genBtn").hidden = !story.id; $("#genBtn").textContent = "Generate";
+  $("#genWrap").style.display = story.id ? "" : "none";
+  $("#outputs").innerHTML = "";
+  if (story.id) loadOutputs(story.id);
+  $("#sheet").classList.add("on"); $("#sheet").scrollTop = 0;
+  if (!story.id || !story.why_it_matters) setTimeout(()=>$("#fWhy").focus(),60);
+}
+$("#sheetClose").onclick = () => $("#sheet").classList.remove("on");
+
+async function save(status){
+  const headline = $("#fHeadline").value.trim();
+  const why = $("#fWhy").value.trim();
+  if (!headline){ toast("Add a headline"); $("#fHeadline").focus(); return; }
+  if (!$("#fDate").value){ toast("Add the date of the incident"); $("#fDate").focus(); return; }
+  if (!why){ toast("Add why it matters"); $("#fWhy").focus(); return; }
+  const what = $("#fWhat").value.trim();
+  if (!what){ toast("Add what happened"); $("#fWhat").focus(); return; }
+  const row = {
+    headline, what_happened:what,
+    mechanism: $("#fMech").value.trim() || null,
+    why_it_matters: why, action: $("#fAction").value.trim() || null,
+    occurred_on: $("#fDate").value || null, location: $("#fLoc").value.trim() || null,
+    incident_type: $("#incType .chip[aria-pressed=true]")?.dataset.v ?? "other",
+    source_urls: collectSources(),
+    importance: $("#importance .chip[aria-pressed=true]")?.dataset.v ?? "normal",
+    status, curated_by:"ant",
+  };
+  SCORES.forEach(([k]) => row["score_"+k] = +($(`[data-score=${k}] [aria-pressed=true]`)?.dataset.v) || null);
+  const tagIds = $$("#tags .chip[aria-pressed=true]").map(c=>c.dataset.id);
+
+  let id = editing.id;
+  if (id){
+    const { error } = await sb.from("stories").update(row).eq("id",id);
+    if (error) return toast("Save failed: "+error.message);
+    await sb.from("story_tags").delete().eq("story_id",id);
+  } else {
+    row.raw_item_id = editing.raw_item_id; row.slug = slug(row.headline);
+    const { data, error } = await sb.from("stories").insert(row).select("id").single();
+    if (error) return toast("Save failed: "+error.message);
+    id = data.id; editing.id = id; editing.status = status;
+    if (editing.raw_item_id){
+      await sb.from("raw_items").update({status:"kept"}).eq("id",editing.raw_item_id);
+      queue = queue.filter(x=>x.id!==editing.raw_item_id); renderQueue(); $("#cNew").textContent=queue.length;
+    }
+    $("#genBtn").hidden = false; $("#genWrap").style.display = "";
+  }
+  if (tagIds.length) await sb.from("story_tags").insert(tagIds.map(t=>({story_id:id,tag_id:t})));
+  $("#sheetState").textContent = status==="ready" ? "Ready" : "Draft";
+  toast(status==="ready" ? "Marked ready" : "Draft saved");
+  loadDrafts();
+}
+$("#saveDraft").onclick = () => save("draft");
+$("#saveReady").onclick = () => save("ready");
+
+async function loadOutputs(storyId){
+  const { data } = await sb.from("outputs").select("format,body").eq("story_id",storyId);
+  renderOutputs(data ?? []);
+}
+function renderOutputs(rows){
+  const byFmt = Object.fromEntries(rows.map(r=>[r.format,r.body]));
+  $("#outputs").innerHTML = FORMATS.map(([f,label]) => byFmt[f]!=null ? outCard(f,label,byFmt[f]) : "").join("");
+}
+function outCard(f,label,body){
+  let inner, copyText;
+  if (f==="champion_pack"){
+    let cp; try { cp=JSON.parse(body); } catch { cp=null; }
+    if (cp){
+      const dp=(cp.discussion_points??[]).map(p=>`<li>${esc(p)}</li>`).join("");
+      inner = `<div class="cp"><div class="l">Summary</div>${esc(cp.summary??"")}</div>
+        <div class="cp"><div class="l">Why it matters</div>${esc(cp.why_it_matters??"")}</div>
+        <div class="cp"><div class="l">Discussion points</div><ul>${dp}</ul></div>
+        <div class="cp"><div class="l">How to use it</div>${esc(cp.how_to_use??"")}</div>`;
+      copyText = `${cp.summary}\n\nWhy it matters\n${cp.why_it_matters}\n\nDiscussion points\n${(cp.discussion_points??[]).map(p=>"- "+p).join("\n")}\n\nHow to use it\n${cp.how_to_use}`;
+    } else { inner=esc(body); copyText=body; }
+  } else { inner=esc(body); copyText=body; }
+  return `<div class="out"><div class="oh"><span class="on">${label}</span><button class="oc" data-copy="${esc(copyText)}">Copy</button></div><div class="ob">${inner}</div></div>`;
+}
+$("#outputs").addEventListener("click", async e => {
+  const b=e.target.closest(".oc"); if(!b) return;
+  try { await navigator.clipboard.writeText(b.dataset.copy); toast("Copied"); } catch { toast("Copy failed"); }
+});
+$("#genBtn").onclick = async () => {
+  if (!editing?.id){ toast("Save the story first"); return; }
+  const formats = $$("#fmtPick .chip[aria-pressed=true]").map(c=>c.dataset.fmt);
+  if (!formats.length){ toast("Pick at least one format"); return; }
+  showLoad("Generating", formats.length+" format"+(formats.length>1?"s":""));
+  try {
+    const { data, error } = await sb.functions.invoke("generate", { body:{ story_id:editing.id, formats } });
+    hideLoad();
+    if (error || data?.error) toast("Generate failed: "+(data?.error ?? error?.message ?? ""));
+    else { await loadOutputs(editing.id); $("#genBtn").textContent="Regenerate"; toast("Generated "+(data.generated?.length ?? 0)+" formats"); $("#genWrap").scrollIntoView({behavior:"smooth",block:"nearest"}); }
+  } catch { hideLoad(); toast("Generate failed"); }
+};
+
+function angle(a){ const c=a?("h"+a):""; return `<span class="ha ${c}"><span class="dot"></span>${a?a+"/5":"untriaged"}</span>`; }
+const STYPE = { people_impacted:"People", watch_behaviour:"Behaviour", active_warning:"Warning", niche_quirky:"Quirky", technical:"Technical" };
+function storyTypeLabel(t){ return STYPE[t] ?? t; }
+function ago(d){ if(!d) return ""; const m=Math.round((Date.now()-new Date(d))/60000); if(m<1) return "now"; if(m<60) return m+"m"; const h=Math.round(m/60); if(h<24) return h+"h"; return Math.round(h/24)+"d"; }
+function esc(s){ return String(s ?? "").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function slug(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,80)+"-"+Date.now().toString(36); }
+let tt; function toast(m){ const t=$("#toast"); t.textContent=m; t.classList.add("on"); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove("on"),2200); }
+</script>
+</body>
+</html>
