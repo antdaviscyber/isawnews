@@ -104,6 +104,19 @@
   .tagset{margin-bottom:12px}
   .tagset .gl{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:7px}
 
+  .admin-add{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px;margin:20px 0 8px;display:grid;gap:14px;grid-template-columns:1fr}
+  @media (min-width:640px){ .admin-add{grid-template-columns:1fr 180px auto;align-items:end} .admin-add .fld{margin-bottom:0} }
+  .admin-msg{min-height:20px;font-size:14px;margin-bottom:8px}
+  .admin-msg.err{color:var(--crit)}
+  .admin-msg.ok{color:var(--ok)}
+  .ad-row{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);padding:14px 0;flex-wrap:wrap}
+  .ad-row .em{font-weight:600;flex:1;min-width:180px}
+  .ad-row .status{font-size:12px;padding:2px 9px;border-radius:999px;background:var(--line2);color:var(--mute);font-weight:600}
+  .ad-row .status.active{background:#E4F3EA;color:var(--ok)}
+  .ad-row .status.invited{background:#FEF3DD;color:var(--hi)}
+  .ad-row select{border:1px solid var(--line);border-radius:var(--r);padding:7px 10px;background:var(--card);font-size:14px}
+  .ad-row .rm{color:var(--crit);font-weight:600;font-size:14px}
+
   .gen-head{border-top:1px solid var(--line);padding-top:22px;margin-bottom:12px}
   .gen-head h2{font-family:var(--serif);font-weight:500;font-size:22px;margin:0}
   .fmtpick{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
@@ -169,6 +182,7 @@
     <nav class="tabs" role="tablist">
       <button role="tab" aria-selected="true" data-tab="queue">Wire <span class="count" id="cNew">0</span></button>
       <button role="tab" aria-selected="false" data-tab="drafts" id="tabDesk">Desk <span class="count" id="cDraft">0</span></button>
+      <button role="tab" aria-selected="false" data-tab="admin" id="tabAdmin" hidden>Admin</button>
       <span class="spacer"></span>
       <div class="sortToggle" id="sortToggle" role="group" aria-label="Sort order">
         <button data-mode="latest" aria-pressed="false">Latest</button>
@@ -179,6 +193,17 @@
   <main>
     <div id="queue"></div>
     <div id="drafts" hidden></div>
+    <div id="adminview" hidden>
+      <div class="admin-add">
+        <div class="fld"><label for="adEmail">Email</label><input id="adEmail" type="email" placeholder="name@example.com"></div>
+        <div class="fld"><label for="adRole">Role</label>
+          <select id="adRole"><option value="viewer">Viewer, wire only</option><option value="admin">Admin, full access</option></select>
+        </div>
+        <button class="btn keep" id="adInvite">Send invite</button>
+      </div>
+      <div id="adMsg" class="admin-msg"></div>
+      <div id="adList"></div>
+    </div>
   </main>
 </div>
 
@@ -267,7 +292,9 @@ async function start(){
   const { data: roleRow } = await sb.from("app_users").select("role").maybeSingle();
   role = roleRow?.role ?? "viewer";
   $("#app").hidden = false;
-  if (role !== "admin"){
+  if (role === "admin"){
+    $("#tabAdmin").hidden = false;
+  } else {
     $("#tabDesk").hidden = true;
     if ($("#drafts").hidden === false) $$("nav.tabs [role=tab]")[0].click();
   }
@@ -284,7 +311,9 @@ $$("nav.tabs [role=tab]").forEach(b => b.onclick = () => {
   $$("nav.tabs [role=tab]").forEach(x => x.setAttribute("aria-selected", x===b));
   $("#queue").hidden = b.dataset.tab!=="queue";
   $("#drafts").hidden = b.dataset.tab!=="drafts";
+  $("#adminview").hidden = b.dataset.tab!=="admin";
   $("#sortToggle").style.visibility = b.dataset.tab==="queue" ? "visible" : "hidden";
+  if (b.dataset.tab==="admin") loadAdmin();
 });
 $("#sortToggle").onclick = e => {
   const b = e.target.closest("button"); if (!b) return;
@@ -373,6 +402,56 @@ $("#drafts").addEventListener("click", e => {
   const d = e.target.closest(".story"); if (!d) return;
   openSheet(drafts.find(x=>x.id===d.dataset.id));
 });
+
+function adMsg(text, cls){ const el=$("#adMsg"); el.textContent=text; el.className="admin-msg"+(cls?" "+cls:""); }
+
+async function loadAdmin(){
+  $("#adList").innerHTML = `<div class="empty">Loading…</div>`;
+  const { data, error } = await sb.functions.invoke("admin-users", { body:{ action:"list" } });
+  if (error || data?.error){ $("#adList").innerHTML = `<div class="empty">Couldn't load the user list.</div>`; return; }
+  renderAdmin(data.users ?? []);
+}
+function renderAdmin(users){
+  const el = $("#adList");
+  if (!users.length){ el.innerHTML = `<div class="empty">No one's set up yet.</div>`; return; }
+  el.innerHTML = users.map(u => `
+    <div class="ad-row" data-email="${esc(u.email)}">
+      <span class="em">${esc(u.email)}</span>
+      <span class="status ${u.status==="active"?"active":u.status==="invited"?"invited":""}">${esc(u.status)}</span>
+      <select data-act="role">
+        <option value="viewer" ${u.role==="viewer"?"selected":""}>Viewer</option>
+        <option value="admin" ${u.role==="admin"?"selected":""}>Admin</option>
+      </select>
+      <button class="rm" data-act="remove">Remove</button>
+    </div>`).join("");
+}
+$("#adList").addEventListener("change", async e => {
+  if (e.target.dataset.act !== "role") return;
+  const row = e.target.closest(".ad-row"), email = row.dataset.email, role = e.target.value;
+  const { data, error } = await sb.functions.invoke("admin-users", { body:{ action:"set_role", email, role } });
+  if (error || data?.error){ adMsg(data?.error ?? "Couldn't change that role.", "err"); loadAdmin(); return; }
+  adMsg(`${email} is now ${role}.`, "ok");
+});
+$("#adList").addEventListener("click", async e => {
+  if (e.target.dataset.act !== "remove") return;
+  const row = e.target.closest(".ad-row"), email = row.dataset.email;
+  if (!confirm(`Remove ${email}'s access to ISAW News? Their login stays but nothing will load for them.`)) return;
+  const { data, error } = await sb.functions.invoke("admin-users", { body:{ action:"remove", email } });
+  if (error || data?.error){ adMsg(data?.error ?? "Couldn't remove that user.", "err"); return; }
+  adMsg(`${email} removed.`, "ok");
+  loadAdmin();
+});
+$("#adInvite").onclick = async () => {
+  const email = $("#adEmail").value.trim().toLowerCase(), role = $("#adRole").value;
+  if (!email){ adMsg("Enter an email first.", "err"); return; }
+  $("#adInvite").disabled = true;
+  const { data, error } = await sb.functions.invoke("admin-users", { body:{ action:"invite", email, role } });
+  $("#adInvite").disabled = false;
+  if (error || data?.error){ adMsg(data?.error ?? "Couldn't send that invite.", "err"); return; }
+  adMsg(`Invite sent to ${email}.`, "ok");
+  $("#adEmail").value = "";
+  loadAdmin();
+};
 
 function buildIncident(){
   $("#incType").innerHTML = INCIDENT.map(([v,l]) => `<button class="chip" data-v="${v}">${l}</button>`).join("");
