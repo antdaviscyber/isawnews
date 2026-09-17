@@ -38,6 +38,9 @@
   nav.tabs .count{background:#2A2E36;color:#fff;border-radius:999px;padding:1px 8px;font-size:12px;margin-left:6px;font-weight:600}
 
   main{max-width:var(--col);margin:0 auto;padding:0 20px 64px}
+  .wire-search{padding:16px 0 4px}
+  .wire-search input{width:100%;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:11px 16px;font-size:15px}
+  .wire-search input:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgba(22,24,29,.08)}
   .empty{padding:64px 20px;text-align:center;color:var(--mute)}
   .empty b{display:block;font-family:var(--serif);font-size:20px;color:var(--ink);margin-bottom:6px;font-weight:500}
 
@@ -169,6 +172,13 @@
   <button id="gateGo">Sign in</button>
   <div id="gateMsg" style="color:var(--crit);font-size:14px;margin-top:10px;min-height:18px"></div>
 </div>
+<div id="setpw" class="gate" hidden>
+  <div class="brand">ISAW <em>News</em></div>
+  <p>Welcome. Set a password to finish signing in, you'll use this from now on.</p>
+  <input id="setpwInput" type="password" placeholder="New password" autocomplete="new-password">
+  <button id="setpwGo">Set password</button>
+  <div id="setpwMsg" style="color:var(--crit);font-size:14px;margin-top:10px;min-height:18px"></div>
+</div>
 
 <div id="app" hidden>
   <header class="mast">
@@ -191,6 +201,7 @@
     </nav>
   </header>
   <main>
+    <div id="wireSearch" class="wire-search"><input type="search" id="wireSearchInput" placeholder="Search the wire…"></div>
     <div id="queue"></div>
     <div id="drafts" hidden></div>
     <div id="adminview" hidden>
@@ -266,10 +277,15 @@ $("#dateline").textContent = new Date().toLocaleDateString("en-GB",{weekday:"lon
 
 sb = createClient(SUPABASE_URL, ANON);
 
+const linkType = new URLSearchParams(location.hash.slice(1)).get("type");
+
 (async function init(){
   const { data:{ session } } = await sb.auth.getSession();
-  if (session) await start(); else $("#gate").hidden = false;
+  if (session && (linkType==="invite" || linkType==="recovery")) $("#setpw").hidden = false;
+  else if (session) await start();
+  else $("#gate").hidden = false;
 })();
+sb.auth.onAuthStateChange((event) => { if (event==="PASSWORD_RECOVERY") $("#setpw").hidden = false; });
 
 async function doSignIn(){
   const email = $("#gateEmail").value.trim(), password = $("#gatePass").value;
@@ -285,6 +301,19 @@ $("#gateGo").onclick = doSignIn;
 $("#gatePass").addEventListener("keydown", e => { if (e.key==="Enter") doSignIn(); });
 
 $("#signOut").onclick = async () => { await sb.auth.signOut(); location.reload(); };
+
+$("#setpwGo").onclick = async () => {
+  const pw = $("#setpwInput").value;
+  if (!pw || pw.length < 8){ $("#setpwMsg").textContent = "Use at least 8 characters."; return; }
+  $("#setpwGo").disabled = true;
+  const { error } = await sb.auth.updateUser({ password: pw });
+  $("#setpwGo").disabled = false;
+  if (error){ $("#setpwMsg").textContent = "Couldn't set that password: "+error.message; return; }
+  history.replaceState(null, "", location.pathname);
+  $("#setpw").hidden = true;
+  await start();
+};
+$("#setpwInput").addEventListener("keydown", e => { if (e.key==="Enter") $("#setpwGo").click(); });
 
 async function start(){
   const { error } = await sb.from("tags").select("id").limit(1);
@@ -310,6 +339,7 @@ function hideLoad(){ $("#load").classList.remove("on"); }
 $$("nav.tabs [role=tab]").forEach(b => b.onclick = () => {
   $$("nav.tabs [role=tab]").forEach(x => x.setAttribute("aria-selected", x===b));
   $("#queue").hidden = b.dataset.tab!=="queue";
+  $("#wireSearch").hidden = b.dataset.tab!=="queue";
   $("#drafts").hidden = b.dataset.tab!=="drafts";
   $("#adminview").hidden = b.dataset.tab!=="admin";
   $("#sortToggle").style.visibility = b.dataset.tab==="queue" ? "visible" : "hidden";
@@ -322,6 +352,7 @@ $("#sortToggle").onclick = e => {
   $$("#sortToggle button").forEach(x => x.setAttribute("aria-pressed", x===b));
   loadQueue();
 };
+$("#wireSearchInput").addEventListener("input", renderQueue);
 
 async function loadQueue(){
   let q = sb.from("raw_items")
@@ -336,9 +367,16 @@ async function loadQueue(){
   renderQueue();
 }
 function renderQueue(){
+  const term = $("#wireSearchInput").value.trim().toLowerCase();
+  const list = term ? queue.filter(i => `${i.title} ${i.summary??""} ${i.sources?.name??""}`.toLowerCase().includes(term)) : queue;
   const el = $("#queue");
-  if (!queue.length){ el.innerHTML = `<div class="empty"><b>The wire is clear</b>New stories arrive every 15 minutes.</div>`; return; }
-  el.innerHTML = queue.map(i => `
+  if (!list.length){
+    el.innerHTML = term
+      ? `<div class="empty"><b>No matches</b>Nothing on the wire matches "${esc(term)}".</div>`
+      : `<div class="empty"><b>The wire is clear</b>New stories arrive every 15 minutes.</div>`;
+    return;
+  }
+  el.innerHTML = list.map(i => `
     <article class="story" data-id="${i.id}">
       <div class="top">
         ${angle(i.human_angle)}
@@ -448,7 +486,7 @@ $("#adInvite").onclick = async () => {
   const { data, error } = await sb.functions.invoke("admin-users", { body:{ action:"invite", email, role } });
   $("#adInvite").disabled = false;
   if (error || data?.error){ adMsg(data?.error ?? "Couldn't send that invite.", "err"); return; }
-  adMsg(`Invite sent to ${email}.`, "ok");
+  adMsg(data.sent==="reset" ? `${email} already had an account, sent a fresh password link instead.` : `Invite sent to ${email}.`, "ok");
   $("#adEmail").value = "";
   loadAdmin();
 };
