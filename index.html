@@ -32,7 +32,9 @@
   nav.tabs button{padding:8px 0 12px;color:#AEB4BB;font-weight:500;font-size:15px;border-bottom:2px solid transparent}
   nav.tabs button[aria-selected=true]{color:#fff;border-bottom-color:var(--gold)}
   nav.tabs .spacer{flex:1}
-  nav.tabs .sort{color:var(--gold);font-weight:600;font-size:14px;padding-bottom:12px}
+  nav.tabs .sortToggle{display:inline-flex;border:1px solid #3A3F49;border-radius:999px;padding:2px;gap:2px;margin-bottom:11px}
+  nav.tabs .sortToggle button{padding:6px 13px;font-size:13px;font-weight:600;border-radius:999px;color:#AEB4BB}
+  nav.tabs .sortToggle button[aria-pressed=true]{background:var(--gold);color:var(--goldink)}
   nav.tabs .count{background:#2A2E36;color:#fff;border-radius:999px;padding:1px 8px;font-size:12px;margin-left:6px;font-weight:600}
 
   main{max-width:var(--col);margin:0 auto;padding:0 20px 64px}
@@ -166,9 +168,12 @@
     </div>
     <nav class="tabs" role="tablist">
       <button role="tab" aria-selected="true" data-tab="queue">Wire <span class="count" id="cNew">0</span></button>
-      <button role="tab" aria-selected="false" data-tab="drafts">Desk <span class="count" id="cDraft">0</span></button>
+      <button role="tab" aria-selected="false" data-tab="drafts" id="tabDesk">Desk <span class="count" id="cDraft">0</span></button>
       <span class="spacer"></span>
-      <button class="sort" id="sortToggle">Human angle</button>
+      <div class="sortToggle" id="sortToggle" role="group" aria-label="Sort order">
+        <button data-mode="latest" aria-pressed="false">Latest</button>
+        <button data-mode="human" aria-pressed="true">Human</button>
+      </div>
     </nav>
   </header>
   <main>
@@ -223,7 +228,7 @@ const ANON = "sb_publishable_nllLKPRo7Tr6XYkA1wzIsw_X01mXhU0";
 
 const $ = (s, el=document) => el.querySelector(s);
 const $$ = (s, el=document) => [...el.querySelectorAll(s)];
-let sb, tags = [], queue = [], drafts = [], editing = null;
+let sb, tags = [], queue = [], drafts = [], editing = null, role = "admin";
 let sortMode = localStorage.getItem("isaw_sort") ?? "human";
 
 const INCIDENT = [["breach","Breach"],["hack","Hack"],["vulnerability","Vulnerability"],["ransomware","Ransomware"],["scam","Scam"],["data_leak","Data leak"],["insider","Insider"],["outage","Outage"],["legal","Legal"],["other","Other"]];
@@ -259,10 +264,17 @@ $("#signOut").onclick = async () => { await sb.auth.signOut(); location.reload()
 async function start(){
   const { error } = await sb.from("tags").select("id").limit(1);
   if (error){ $("#gate").hidden=false; $("#gateMsg").textContent="Signed in, but the desk didn't load: "+error.message; return; }
+  const { data: roleRow } = await sb.from("app_users").select("role").maybeSingle();
+  role = roleRow?.role ?? "viewer";
   $("#app").hidden = false;
+  if (role !== "admin"){
+    $("#tabDesk").hidden = true;
+    if ($("#drafts").hidden === false) $$("nav.tabs [role=tab]")[0].click();
+  }
   tags = (await sb.from("tags").select("*").order("kind").order("name")).data ?? [];
   buildIncident(); buildImportance(); buildScores(); buildTags(); buildFmtPick();
-  await Promise.all([loadQueue(), loadDrafts()]);
+  if (role === "admin") await Promise.all([loadQueue(), loadDrafts()]);
+  else await loadQueue();
 }
 
 function showLoad(msg, sub=""){ $("#loadMsg").textContent=msg; $("#loadSub").textContent=sub; $("#load").classList.add("on"); }
@@ -274,7 +286,13 @@ $$("nav.tabs [role=tab]").forEach(b => b.onclick = () => {
   $("#drafts").hidden = b.dataset.tab!=="drafts";
   $("#sortToggle").style.visibility = b.dataset.tab==="queue" ? "visible" : "hidden";
 });
-$("#sortToggle").onclick = () => { sortMode = sortMode==="human"?"latest":"human"; localStorage.setItem("isaw_sort",sortMode); loadQueue(); };
+$("#sortToggle").onclick = e => {
+  const b = e.target.closest("button"); if (!b) return;
+  sortMode = b.dataset.mode;
+  localStorage.setItem("isaw_sort", sortMode);
+  $$("#sortToggle button").forEach(x => x.setAttribute("aria-pressed", x===b));
+  loadQueue();
+};
 
 async function loadQueue(){
   let q = sb.from("raw_items")
@@ -285,7 +303,7 @@ async function loadQueue(){
     : q.order("published_at",{ascending:false,nullsFirst:false});
   queue = (await q).data ?? [];
   $("#cNew").textContent = queue.length;
-  $("#sortToggle").textContent = sortMode==="human" ? "Human angle" : "Latest";
+  $$("#sortToggle button").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode===sortMode));
   renderQueue();
 }
 function renderQueue(){
@@ -304,7 +322,7 @@ function renderQueue(){
       <div class="drawer"><div class="inner">
         <div class="summary">${esc(i.summary ?? "No summary in the feed.")}</div>
         <div class="row-actions">
-          <button class="btn keep" data-act="keep">Keep and draft</button>
+          ${role==="admin" ? `<button class="btn keep" data-act="keep">Keep and draft</button>` : ""}
           <button class="btn ghost" data-act="skip">Skip</button>
           <a class="btn ghost" href="${esc(i.url)}" target="_blank" rel="noopener" data-act="open">Open ↗</a>
         </div>
