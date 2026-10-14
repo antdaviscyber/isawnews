@@ -46,10 +46,11 @@
 
   .story{border-bottom:1px solid var(--line);padding:18px 0}
   .story .top{display:flex;align-items:center;gap:10px;margin-bottom:7px;font-size:13px;color:var(--mute);flex-wrap:wrap}
-  .ha{display:inline-flex;align-items:center;gap:5px;font-weight:600;color:var(--mute)}
-  .ha .dot{width:7px;height:7px;border-radius:50%;background:var(--line)}
-  .ha.h5 .dot,.ha.h4 .dot{background:var(--gold)}
+  .ha{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:15px;color:var(--mute)}
+  .ha .dot{width:11px;height:11px;border-radius:50%;background:var(--line)}
+  .ha.h5 .dot,.ha.h4 .dot{background:var(--gold);box-shadow:0 0 0 3px rgba(255,209,0,.25)}
   .ha.h5,.ha.h4{color:var(--hi)}
+  .ha.h3 .dot{background:var(--faint)}
   .type-tag{font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--ink);background:var(--line2);padding:2px 8px;border-radius:5px;text-transform:capitalize}
   .story h3{margin:0;font-family:var(--serif);font-weight:500;font-size:21px;line-height:1.25;letter-spacing:-.005em}
   .story .note{margin-top:6px;color:var(--mute);font-size:15px}
@@ -61,6 +62,7 @@
   .btn{border:1px solid var(--line);background:var(--card);border-radius:var(--r);padding:11px 16px;font-weight:600;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none}
   .btn:active{transform:translateY(1px)}
   .btn.keep{background:var(--gold);border-color:var(--gold);color:var(--goldink);flex:1}
+  .btn.script{background:var(--ink);border-color:var(--ink);color:#fff;flex:1}
   .btn.ghost{color:var(--mute)}
   .btn:disabled{opacity:.55}
 
@@ -195,8 +197,8 @@
       <button role="tab" aria-selected="false" data-tab="admin" id="tabAdmin" hidden>Admin</button>
       <span class="spacer"></span>
       <div class="sortToggle" id="sortToggle" role="group" aria-label="Sort order">
-        <button data-mode="latest" aria-pressed="false">Latest</button>
-        <button data-mode="human" aria-pressed="true">Human</button>
+        <button data-mode="latest" aria-pressed="true">Latest</button>
+        <button data-mode="human" aria-pressed="false">Human</button>
       </div>
     </nav>
   </header>
@@ -265,7 +267,7 @@ const ANON = "sb_publishable_nllLKPRo7Tr6XYkA1wzIsw_X01mXhU0";
 const $ = (s, el=document) => el.querySelector(s);
 const $$ = (s, el=document) => [...el.querySelectorAll(s)];
 let sb, tags = [], queue = [], drafts = [], editing = null, role = "admin";
-let sortMode = localStorage.getItem("isaw_sort") ?? "human";
+let sortMode = localStorage.getItem("isaw_sort") ?? "latest";
 
 const INCIDENT = [["breach","Breach"],["hack","Hack"],["vulnerability","Vulnerability"],["ransomware","Ransomware"],["scam","Scam"],["data_leak","Data leak"],["insider","Insider"],["outage","Outage"],["legal","Legal"],["other","Other"]];
 const IMPORTANCE = [["low","Low"],["normal","Normal"],["high","High"],["critical","Critical"]];
@@ -389,8 +391,7 @@ function renderQueue(){
       <div class="drawer"><div class="inner">
         <div class="summary">${esc(i.summary ?? "No summary in the feed.")}</div>
         <div class="row-actions">
-          ${role==="admin" ? `<button class="btn keep" data-act="keep">Keep and draft</button>` : ""}
-          <button class="btn ghost" data-act="skip">Skip</button>
+          <button class="btn script" data-act="script">Script it</button>
           <a class="btn ghost" href="${esc(i.url)}" target="_blank" rel="noopener" data-act="open">Open ↗</a>
         </div>
       </div></div>
@@ -402,6 +403,7 @@ $("#queue").addEventListener("click", async e => {
   const act = e.target.closest("[data-act]")?.dataset.act;
   if (!act){ art.classList.toggle("open"); return; }
   if (act==="open") return;
+  if (act==="script"){ scriptIt(item); return; }
   if (act==="skip"){
     await sb.from("raw_items").update({status:"skipped"}).eq("id",id);
     queue = queue.filter(x=>x.id!==id); $("#cNew").textContent=queue.length; art.remove(); toast("Skipped"); return;
@@ -417,6 +419,23 @@ $("#queue").addEventListener("click", async e => {
     } catch { hideLoad(); toast("Draft failed, opening blank"); openSheet(base); }
   }
 });
+
+function scriptIt(item){
+  const source = item.sources?.name ?? "the source";
+  const prompt = `I found this story and I'm deciding whether to turn it into a short-form video reel on cybersecurity/scam awareness.
+
+Headline: ${item.title}
+Source: ${source}
+Link: ${item.url}
+${item.summary ? `Summary from the feed: ${item.summary}\n` : ""}
+Please:
+1. Open the link and read the actual article so you have the real details, not just the summary above.
+2. Tell me plainly whether this is a good story for a reel, and why (or why not) — is it timely, surprising, relatable, or does it teach a clear lesson?
+3. If it's good, suggest 2-3 different angles I could take for the reel (e.g. the victim's perspective, "how the scam worked" breakdown, "here's what to check for" style).
+4. Then STOP and ask me which angle I want, or whether I want to skip this one. Do not write a full script until I tell you to go ahead.`;
+  const url = "https://claude.ai/new?q=" + encodeURIComponent(prompt);
+  window.open(url, "_blank", "noopener");
+}
 
 async function loadDrafts(){
   const { data } = await sb.from("stories_view").select("*").in("status",["draft","ready"]).order("created_at",{ascending:false});
