@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#16181D">
+<title>ISAW News</title>
+<meta name="description" content="A live wire of cyber security and scam news, newest first.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F6F3; --card:#FFFFFF; --ink:#16181D; --mute:#6B7178; --faint:#9AA0A6;
+    --line:#E4E5E0; --line2:#EFEFEA; --gold:#FFD100; --goldink:#14181F;
+    --r:8px; --col:780px;
+    --serif:"Newsreader",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  a{color:inherit}
+
+  header.mast{background:var(--ink);color:#fff}
+  .mast-in{max-width:var(--col);margin:0 auto;padding:calc(env(safe-area-inset-top) + 16px) 20px 16px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+  .brand{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:-.01em;line-height:1}
+  .brand em{font-style:italic;color:var(--gold)}
+  .right{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+  .tvlink{font-size:13px;font-weight:600;color:var(--ink);background:var(--gold);padding:4px 11px;border-radius:999px;text-decoration:none}
+  .dateline{font-size:12px;color:#AEB4BB;letter-spacing:.08em;text-transform:uppercase;padding-bottom:3px;text-align:right}
+
+  main{max-width:var(--col);margin:0 auto;padding:0 20px 64px}
+  .tools{display:flex;gap:10px;align-items:center;padding:16px 0 4px}
+  .tools input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:11px 16px;font:inherit;font-size:15px;color:inherit}
+  .tools input:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgba(22,24,29,.08)}
+  .count{font-size:13px;color:var(--mute);white-space:nowrap}
+  .empty{padding:64px 20px;text-align:center;color:var(--mute)}
+  .empty b{display:block;font-family:var(--serif);font-size:20px;color:var(--ink);margin-bottom:6px;font-weight:500}
+
+  .story{border-bottom:1px solid var(--line);padding:18px 0;cursor:pointer}
+  .story .top{display:flex;align-items:center;gap:10px;margin-bottom:7px;font-size:13px;color:var(--mute);flex-wrap:wrap}
+  .story .top .src{font-weight:600;color:var(--ink)}
+  .story h3{margin:0;font-family:var(--serif);font-weight:500;font-size:21px;line-height:1.25;letter-spacing:-.005em}
+  .story .drawer{max-height:0;overflow:hidden;transition:max-height .22s ease}
+  .story.open .drawer{max-height:460px}
+  @media (prefers-reduced-motion:reduce){.story .drawer{transition:none}}
+  .story .summary{margin-top:12px;font-size:15px}
+  .story .row-actions{display:flex;gap:10px;margin-top:14px}
+  .btn{border:1px solid var(--line);background:var(--card);border-radius:var(--r);padding:11px 16px;font-weight:600;font-size:15px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:var(--mute)}
+  .btn:active{transform:translateY(1px)}
+  .foot{padding:28px 0 0;font-size:13px;color:var(--faint)}
+  .load{padding:48px 0;text-align:center;color:var(--mute)}
+  :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+</style>
+</head>
+<body>
+<header class="mast"><div class="mast-in">
+  <div class="brand">ISAW <em>News</em></div>
+  <div class="right"><a class="tvlink" href="tv-adc.html">TV view</a><div class="dateline" id="dateline"></div></div>
+</div></header>
+<main>
+  <div class="tools">
+    <input type="search" id="q" placeholder="Search the wire…" aria-label="Search the wire">
+    <span class="count" id="count"></span>
+  </div>
+  <div id="list"><div class="load">Loading the wire…</div></div>
+  <div class="foot">Headlines link to the original publishers. Newest first, updated every few minutes.</div>
+</main>
+
+<script>
+const SUPABASE_URL = "https://xvymazorpsuyylbliihw.supabase.co";
+const ANON = "sb_publishable_nllLKPRo7Tr6XYkA1wzIsw_X01mXhU0";
+const $ = s => document.querySelector(s);
+let items = [], loaded = false;
+
+$("#dateline").textContent = new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+
+function tidy(r){
+  if (/^GN:/.test(r.source_name || "")){
+    const m = r.title.match(/^(.*\S)\s+-\s+([^-]{2,40})$/);
+    if (m){ r.title = m[1]; r.source_name = m[2]; } else r.source_name = "Google News";
+  }
+  r.summary = (r.summary || "").replace(/&nbsp;/g," ").replace(/\s+/g," ").trim();
+  if (r.summary.toLowerCase().startsWith(r.title.toLowerCase().slice(0,40))) r.summary = "";   // Google News repeats the headline as the summary
+  return r;
+}
+function ago(d){
+  const m = Math.round((Date.now() - new Date(d)) / 60000);
+  if (m < 2) return "now"; if (m < 60) return m + "m";
+  const h = Math.round(m / 60); if (h < 24) return h + "h";
+  return Math.round(h / 24) + "d";
+}
+function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function safeUrl(u){ try { const x = new URL(u); return /^https?:$/.test(x.protocol) ? x.href : "#"; } catch { return "#"; } }
+
+async function load(){
+  try {
+    const r = await fetch(SUPABASE_URL + "/rest/v1/rpc/public_wire", {
+      method:"POST",
+      headers:{ apikey:ANON, Authorization:"Bearer " + ANON, "Content-Type":"application/json" },
+      body: JSON.stringify({ max_age_hours:168, max_items:150 })
+    });
+    if (!r.ok) throw new Error(r.status);
+    items = (await r.json()).map(tidy); loaded = true;
+    render();
+  } catch {
+    if (!loaded) $("#list").replaceChildren(Object.assign(el("div","empty"),{innerHTML:"<b>The wire didn't load</b>Check your connection and refresh the page."}));
+  }
+}
+
+function render(){
+  const term = $("#q").value.trim().toLowerCase();
+  const list = term ? items.filter(i => `${i.title} ${i.summary} ${i.source_name}`.toLowerCase().includes(term)) : items;
+  $("#count").textContent = list.length + (list.length === 1 ? " story" : " stories");
+  const box = $("#list"); box.replaceChildren();
+  if (!list.length){
+    const e = el("div","empty"); e.append(el("b","", term ? "No matches" : "The wire is clear"), document.createTextNode(term ? `Nothing matches "${term}".` : "New stories arrive every few minutes."));
+    box.appendChild(e); return;
+  }
+  const open = new Set([...document.querySelectorAll(".story.open")].map(x => x.dataset.id));
+  list.forEach(i => {
+    const a = el("article","story" + (open.has(i.id) ? " open" : "")); a.dataset.id = i.id;
+    const top = el("div","top"); top.append(el("span","src",i.source_name || ""), el("span","",ago(i.published_at)));
+    const d = el("div","drawer"), inn = el("div","inner");
+    if (i.summary) inn.appendChild(el("div","summary",i.summary));
+    const acts = el("div","row-actions"), link = el("a","btn","Open ↗");
+    link.href = safeUrl(i.url); link.target = "_blank"; link.rel = "noopener noreferrer";
+    acts.appendChild(link); inn.appendChild(acts); d.appendChild(inn);
+    a.append(top, el("h3","",i.title), d); box.appendChild(a);
+  });
+}
+$("#list").addEventListener("click", e => { if (e.target.closest("a")) return; e.target.closest(".story")?.classList.toggle("open"); });
+$("#q").addEventListener("input", render);
+load(); setInterval(load, 5 * 60 * 1000);
+</script>
+</body>
+</html>

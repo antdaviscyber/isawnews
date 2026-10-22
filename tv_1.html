@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>CYFR News</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night:#1E1033; --deep:#140A24; --raise:#2A1947; --cream:#F8E7C0; --pink:#FF4696;
+    --dim:rgba(248,231,192,.66); --faint:rgba(248,231,192,.16);
+    --serif:"Instrument Serif",Georgia,serif; --head:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif; --sans:"Instrument Sans",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  /* 1rem = 24px at 1920x1080, scales with the screen */
+  html{font-size:min(1.25vw,2.222vh);background:var(--deep)}
+  body{height:100vh;overflow:hidden;background:var(--night);color:var(--cream);font-family:var(--sans);cursor:default}
+  body.idle{cursor:none}
+
+  .stage{height:100vh;display:grid;grid-template-rows:auto 1fr auto}
+
+  .bar{display:flex;align-items:baseline;justify-content:space-between;padding:1.6rem 3rem 0}
+  .mark{font-family:var(--sans);font-weight:700;font-size:1.9rem;letter-spacing:.02em}
+  .mark i{font-family:var(--serif);font-weight:400;font-size:2.3rem;margin-left:.35rem;color:var(--pink)}
+  .clock{font-size:1.3rem;color:var(--dim);font-variant-numeric:tabular-nums}
+  .clock b{color:var(--cream);font-weight:600;font-size:1.9rem;margin-right:.9rem}
+  .clock .stale{color:var(--pink)}
+
+  .body{display:grid;grid-template-columns:minmax(0,1fr) 25rem;gap:3.5rem;padding:1.2rem 3rem 1.6rem;min-height:0}
+
+  .hero{position:relative;display:flex;flex-direction:column;justify-content:center;min-height:0;padding-bottom:1rem}
+  .hero-in{transition:opacity .45s ease,transform .45s ease}
+  .hero-in.out{opacity:0;transform:translateY(.8rem)}
+  .rate{display:flex;align-items:center;gap:1.1rem;margin-bottom:1.6rem}
+  .stars{display:flex;gap:.35rem}
+  .stars svg{width:3.4rem;height:3.4rem;display:block}
+  .stars .on{fill:var(--pink)}
+  .stars .off{fill:none;stroke:var(--faint);stroke-width:5}
+  .tag{font-size:1.25rem;font-weight:600;background:var(--cream);color:var(--night);padding:.2rem .85rem;border-radius:.3rem}
+  .fresh{font-size:1.25rem;font-weight:600;color:var(--pink);border:.15rem solid var(--pink);padding:.05rem .7rem;border-radius:.3rem}
+  .hero h1{font-family:var(--head);font-weight:700;font-size:3.9rem;line-height:1.06;letter-spacing:-.025em;max-width:50rem;text-wrap:balance}
+  .hero h1.m{font-size:3.3rem}
+  .hero h1.l{font-size:2.7rem;line-height:1.1}
+  .hero .why{margin-top:1.8rem;font-size:1.55rem;line-height:1.4;color:var(--dim);max-width:44rem}
+  .hero .src{margin-top:1.6rem;font-size:1.3rem;color:var(--cream);font-weight:600}
+  .hero .src span{color:var(--dim);font-weight:400;margin-left:1rem}
+
+  .next h2{font-family:var(--serif);font-weight:400;font-size:1.9rem;margin-bottom:.9rem;color:var(--dim)}
+  .next{display:flex;flex-direction:column;min-height:0;padding-top:1rem;overflow:hidden}
+  .q{border-top:.08rem solid var(--faint);padding:1rem 0 1.05rem;position:relative}
+  .q .mini{display:flex;gap:.18rem;margin-bottom:.45rem}
+  .q .mini svg{width:.95rem;height:.95rem}
+  .q .mini .on{fill:var(--pink)} .q .mini .off{fill:none;stroke:var(--faint);stroke-width:6}
+  .q p{font-size:1.28rem;line-height:1.28;font-weight:500;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .q small{display:block;margin-top:.4rem;font-size:1rem;color:var(--dim)}
+  .q.now::before{content:"";position:absolute;left:-1.1rem;top:1rem;bottom:1.05rem;width:.28rem;border-radius:.2rem;background:var(--faint)}
+  .q.now .fill{position:absolute;left:-1.1rem;top:1rem;width:.28rem;border-radius:.2rem;background:var(--pink);height:0}
+  .q.now p{color:#fff}
+  .q:not(.now) p{color:rgba(248,231,192,.88)}
+
+  .tick{display:flex;align-items:stretch;background:var(--cream);color:var(--night);height:4.4rem;overflow:hidden}
+  .tick .lab{flex:none;display:flex;align-items:center;background:var(--pink);color:var(--night);font-weight:700;font-size:1.5rem;padding:0 2rem;z-index:2}
+  .tick .run{flex:1;overflow:hidden;position:relative}
+  .track{position:absolute;left:0;top:0;bottom:0;display:flex;align-items:center;white-space:nowrap;will-change:transform;animation:run linear infinite}
+  .track span{font-size:1.65rem;font-weight:600;padding-right:1.2rem}
+  .track svg{width:1.1rem;height:1.1rem;fill:var(--pink);margin-right:1.2rem;flex:none}
+  .track .item{display:flex;align-items:center}
+  @keyframes run{to{transform:translateX(-50%)}}
+
+  .navlink{position:fixed;left:3rem;bottom:5.2rem;font-size:1rem;color:var(--dim);text-decoration:none;transition:opacity .4s}
+  body.idle .navlink{opacity:0}
+  @media (prefers-reduced-motion:reduce){.navlink{transition:none}}
+  .empty{display:none;position:absolute;inset:0;z-index:5;background:var(--night);align-items:center;justify-content:center;text-align:center}
+  .empty.on{display:flex}
+  .empty h1{font-family:var(--head);font-weight:700;font-size:4rem;margin-bottom:1rem}
+  .empty p{font-size:1.5rem;color:var(--dim)}
+
+  @media (prefers-reduced-motion:reduce){.hero-in{transition:none}.track{animation-duration:600s!important}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="star" viewBox="0 0 100 100"><path d="M50 6l12.9 29.3 31.8 3.1-23.9 21.2 7 31.2L50 75.4 24.2 90.8l7-31.2L7.3 38.4l31.8-3.1z" stroke-linejoin="round"/></symbol>
+</svg>
+
+<div class="stage">
+  <header class="bar">
+    <div class="mark">CYFR<i>News</i></div>
+    <div class="clock"><b id="clock">--:--</b><span id="upd">Loading</span></div>
+  </header>
+
+  <div class="body">
+    <section class="hero" aria-live="polite">
+      <div class="hero-in" id="hero"></div>
+    </section>
+    <aside class="next">
+      <h2>Next up</h2>
+      <div id="queue"></div>
+    </aside>
+  </div>
+
+  <footer class="tick">
+    <div class="lab" id="tickLab">3 stars and up</div>
+    <div class="run"><div class="track" id="track"></div></div>
+  </footer>
+</div>
+
+<a class="navlink" href="https://isawnews.com/wire.html">Back to the wire</a>
+<div class="empty" id="empty"><div><h1>Nothing to show yet</h1><p id="emptyMsg">Stories rated 3 stars or more appear here. Checking again in a minute.</p></div></div>
+
+<script>
+const SUPABASE_URL = "https://xvymazorpsuyylbliihw.supabase.co";
+const ANON = "sb_publishable_nllLKPRo7Tr6XYkA1wzIsw_X01mXhU0";
+
+// Options in the address bar: ?min=4  ?secs=20  ?hours=48
+const P = new URLSearchParams(location.search);
+const MIN   = Math.min(5, Math.max(1, +P.get("min") || 3));
+const SECS  = Math.max(6, +P.get("secs") || 16);
+const HOURS = Math.max(1, +P.get("hours") || 72);
+const REFRESH_MS = 90 * 1000;
+
+const STYPE = { people_impacted:"People", watch_behaviour:"Behaviour", active_warning:"Warning", niche_quirky:"Quirky", technical:"Technical" };
+const $ = s => document.querySelector(s);
+
+let items = [], idx = 0, lastOk = 0, sig = "", timer = null, tick = null;
+
+function starsEl(n, cls){
+  const wrap = document.createElement("div"); wrap.className = cls;
+  for (let i = 1; i <= 5; i++){
+    const s = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    s.setAttribute("viewBox","0 0 100 100"); s.setAttribute("class", i <= n ? "on" : "off");
+    const u = document.createElementNS("http://www.w3.org/2000/svg","use"); u.setAttribute("href","#star");
+    s.appendChild(u); wrap.appendChild(s);
+  }
+  return wrap;
+}
+function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function ago(d){
+  const m = Math.round((Date.now() - new Date(d)) / 60000);
+  if (m < 2) return "just now"; if (m < 60) return m + " min ago";
+  const h = Math.round(m / 60); if (h < 24) return h + (h === 1 ? " hour ago" : " hours ago");
+  const dd = Math.round(h / 24); return dd + (dd === 1 ? " day ago" : " days ago");
+}
+const isFresh = d => (Date.now() - new Date(d)) < 2 * 3600 * 1000;
+
+async function load(){
+  try {
+    const r = await fetch(SUPABASE_URL + "/rest/v1/rpc/tv_feed", {
+      method:"POST",
+      headers:{ apikey:ANON, Authorization:"Bearer " + ANON, "Content-Type":"application/json" },
+      body: JSON.stringify({ min_angle:MIN, max_age_hours:HOURS, max_items:40 })
+    });
+    if (!r.ok) throw new Error(r.status);
+    const rows = (await r.json()).map(tidy);
+    lastOk = Date.now();
+    apply(rows);
+  } catch (e) {
+    // keep showing what we have; the clock line flags that it is stale
+  }
+  paintStatus();
+}
+
+// Google News titles end in " - Publisher". Move the publisher into the source line.
+function tidy(r){
+  if (/^GN:/.test(r.source_name || "")){
+    const m = r.title.match(/^(.*\S)\s+-\s+([^-]{2,40})$/);
+    if (m){ r.title = m[1]; r.source_name = m[2]; } else r.source_name = r.source_name.replace(/^GN:\s*/, "Google News");
+  }
+  return r;
+}
+
+function apply(rows){
+  const newSig = rows.map(r => r.id).join(",");
+  const currentId = items[idx]?.id;
+  items = rows;
+  $("#tickLab").textContent = MIN === 5 ? "5 stars" : MIN + " stars and up";
+  $("#empty").classList.toggle("on", !rows.length);
+  if (newSig !== sig){
+    sig = newSig;
+    const keep = rows.findIndex(r => r.id === currentId);
+    idx = keep >= 0 ? keep : 0;
+    buildTicker();
+    if (keep < 0 || !$("#hero").childElementCount) show(idx, false); else renderQueue();
+  }
+  if (rows.length && !timer) schedule();
+}
+
+function show(i, animate = true){
+  idx = (i + items.length) % items.length;
+  const it = items[idx], hero = $("#hero");
+  const paint = () => {
+    hero.replaceChildren();
+    const rate = el("div","rate");
+    rate.appendChild(starsEl(it.human_angle,"stars"));
+    if (it.story_type && STYPE[it.story_type]) rate.appendChild(el("span","tag",STYPE[it.story_type]));
+    if (isFresh(it.published_at)) rate.appendChild(el("span","fresh","New"));
+    const h = el("h1", it.title.length > 150 ? "l" : it.title.length > 100 ? "m" : "", it.title);
+    hero.append(rate, h);
+    const why = it.angle_note && !/^triage failed/.test(it.angle_note) ? it.angle_note : "";
+    if (why) hero.appendChild(el("p","why",why));
+    const src = el("div","src",it.source_name || ""); src.appendChild(el("span","",ago(it.published_at)));
+    hero.appendChild(src);
+    renderQueue();
+    hero.classList.remove("out");
+  };
+  if (animate){ hero.classList.add("out"); setTimeout(paint, 450); } else paint();
+}
+
+function renderQueue(){
+  const q = $("#queue"); q.replaceChildren();
+  const rows = Math.min(items.length, 4);
+  for (let k = 0; k < rows; k++){
+    const it = items[(idx + k) % items.length];
+    const row = el("div","q" + (k === 0 ? " now" : ""));
+    row.appendChild(starsEl(it.human_angle,"mini"));
+    row.appendChild(el("p","",it.title));
+    row.appendChild(el("small","",(it.source_name || "") + "   " + ago(it.published_at)));
+    if (k === 0){ const f = el("div","fill"); row.appendChild(f); }
+    q.appendChild(row);
+  }
+  // Drop any row that would be cut off at the bottom of the column
+  const limit = q.parentElement.getBoundingClientRect().bottom - 2;
+  [...q.children].reverse().forEach(r => { if (q.children.length > 1 && r.getBoundingClientRect().bottom > limit) r.remove(); });
+  const f = q.querySelector(".fill");
+  if (f){
+    const row = f.parentElement, h = row.clientHeight - parseFloat(getComputedStyle(row).fontSize) * 2.05;
+    f.style.height = "0px"; f.style.transition = "none";
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      f.style.transition = `height ${SECS}s linear`; f.style.height = Math.max(h, 8) + "px";
+    }));
+  }
+}
+
+function schedule(){
+  clearInterval(timer);
+  timer = setInterval(() => { if (items.length > 1) show(idx + 1); else show(idx); }, SECS * 1000);
+}
+
+function buildTicker(){
+  const track = $("#track"); track.replaceChildren();
+  if (!items.length) return;
+  const mk = () => {
+    const f = document.createDocumentFragment();
+    items.forEach(it => {
+      const w = el("div","item");
+      const s = document.createElementNS("http://www.w3.org/2000/svg","svg");
+      const u = document.createElementNS("http://www.w3.org/2000/svg","use"); u.setAttribute("href","#star");
+      s.appendChild(u); w.append(s, el("span","",it.title));
+      f.appendChild(w);
+    });
+    return f;
+  };
+  track.append(mk(), mk());   // doubled so the loop is seamless
+  requestAnimationFrame(() => {
+    const half = track.scrollWidth / 2;
+    track.style.animationDuration = Math.max(40, half / (parseFloat(getComputedStyle(document.documentElement).fontSize) * 4.2)) + "s";
+  });
+}
+
+function paintStatus(){
+  const now = new Date();
+  $("#clock").textContent = now.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+  const u = $("#upd");
+  if (!lastOk){ u.textContent = "Connecting"; return; }
+  const stale = Date.now() - lastOk > REFRESH_MS * 3;
+  u.textContent = stale ? "Offline, showing the last update" : "Updated " + new Date(lastOk).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+  u.className = stale ? "stale" : "";
+}
+
+// Keep the screen awake, go full screen on click, hide the cursor when idle
+async function wake(){ try { await navigator.wakeLock?.request("screen"); } catch {} }
+document.addEventListener("visibilitychange", () => { if (!document.hidden) wake(); });
+document.addEventListener("click", () => { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.().catch(()=>{}); wake(); });
+let idleT; const bump = () => { document.body.classList.remove("idle"); clearTimeout(idleT); idleT = setTimeout(() => document.body.classList.add("idle"), 3000); };
+addEventListener("mousemove", bump); bump();
+
+setInterval(paintStatus, 15000);
+setInterval(load, REFRESH_MS);
+// A full reload each night clears any drift on a screen that never gets turned off
+setTimeout(() => location.reload(), 6 * 3600 * 1000);
+wake(); load();
+</script>
+</body>
+</html>
