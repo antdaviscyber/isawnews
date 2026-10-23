@@ -54,9 +54,15 @@
   .type-tag{font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--ink);background:var(--line2);padding:2px 8px;border-radius:5px;text-transform:capitalize}
   .story h3{margin:0;font-family:var(--serif);font-weight:500;font-size:21px;line-height:1.25;letter-spacing:-.005em}
   .story .note{margin-top:6px;color:var(--mute);font-size:15px}
+  .story .row{display:flex;gap:14px;align-items:flex-start}
+  .story .body{flex:1;min-width:0}
+  .story .side{display:flex;flex-direction:column;gap:8px;flex:none}
+  .story .side .btn{padding:8px 14px;font-size:14px;white-space:nowrap}
   .story .drawer{max-height:0;overflow:hidden;transition:max-height .22s ease}
   .story.open .drawer{max-height:1400px}
-  .more{font-size:12px;font-weight:600;color:var(--ink);background:var(--line2);padding:1px 9px;border-radius:999px}
+  .more{font-size:12px;font-weight:600;color:var(--ink);background:var(--line2);padding:1px 9px;border-radius:999px;border:0;cursor:pointer}
+  .more:after{content:" ▾"} .story.open .more:after{content:" ▴"}
+  @media (max-width:520px){.story .row{flex-direction:column}.story .side{flex-direction:row;width:100%}.story .side .btn{flex:1}}
   .also{margin-top:16px;padding-top:12px;border-top:1px solid var(--line2)}
   .alsoh{font-size:13px;font-weight:600;color:var(--mute);margin-bottom:6px}
   .also a{display:block;font-size:14px;color:var(--ink);padding:5px 0;text-decoration:none;line-height:1.35}
@@ -431,30 +437,32 @@ function renderQueue(){
   const groups = groupStories(list.map(i => ({ ...i, published_at: i.published_at ?? i.fetched_at })));
   el.innerHTML = groups.map(({ lead:i, others }) => `
     <article class="story" data-id="${i.id}">
-      <div class="top">
-        ${angle(i.human_angle)}
-        ${i.story_type ? `<span class="type-tag">${esc(storyTypeLabel(i.story_type))}</span>` : ""}
-        <span>${esc(i.sources?.name ?? "")}</span>
-        <span>${ago(i.published_at ?? i.fetched_at)}</span>
-        ${others.length ? `<span class="more">+${others.length} more ${others.length===1?"source":"sources"}</span>` : ""}
-      </div>
-      <h3>${esc(i.title)}</h3>
-      ${i.angle_note && !/^triage failed/.test(i.angle_note) ? `<div class="note">${esc(i.angle_note)}</div>` : ""}
-      <div class="drawer"><div class="inner">
-        <div class="summary">${esc(i.summary ?? "No summary in the feed.")}</div>
-        <div class="row-actions">
+      <div class="row">
+        <div class="body">
+          <div class="top">
+            ${angle(i.human_angle)}
+            ${i.story_type ? `<span class="type-tag">${esc(storyTypeLabel(i.story_type))}</span>` : ""}
+            <span>${esc(i.sources?.name ?? "")}</span>
+            <span>${ago(i.published_at ?? i.fetched_at)}</span>
+            ${others.length ? `<button class="more" data-act="toggle" aria-expanded="false">+${others.length} more ${others.length===1?"source":"sources"}</button>` : ""}
+          </div>
+          <h3>${esc(i.title)}</h3>
+          ${i.angle_note && !/^triage failed/.test(i.angle_note) ? `<div class="note">${esc(i.angle_note)}</div>` : ""}
+        </div>
+        <div class="side">
           <button class="btn script" data-act="script">Script it</button>
           <a class="btn ghost" href="${esc(i.url)}" target="_blank" rel="noopener" data-act="open">Open ↗</a>
         </div>
-        ${others.length ? `<div class="also"><div class="alsoh">Also reported by</div>${others.map(o => `<a href="${esc(o.url)}" target="_blank" rel="noopener" data-act="open">${esc((o.sources?.name ?? "Source") + ": " + o.title)}</a>`).join("")}</div>` : ""}
-      </div></div>
+      </div>
+      ${others.length ? `<div class="drawer"><div class="inner"><div class="also"><div class="alsoh">Also reported by</div>${others.map(o => `<a href="${esc(o.url)}" target="_blank" rel="noopener" data-act="open">${esc((o.sources?.name ?? "Source") + ": " + o.title)}</a>`).join("")}</div></div></div>` : ""}
     </article>`).join("");
 }
 $("#queue").addEventListener("click", async e => {
   const art = e.target.closest(".story"); if (!art) return;
   const id = art.dataset.id, item = queue.find(x=>x.id===id);
   const act = e.target.closest("[data-act]")?.dataset.act;
-  if (!act){ art.classList.toggle("open"); return; }
+  if (!act){ if (art.querySelector(".drawer")) art.classList.toggle("open"); return; }
+  if (act==="toggle"){ const o = art.classList.toggle("open"); e.target.closest(".more").setAttribute("aria-expanded", o); return; }
   if (act==="open") return;
   if (act==="script"){ scriptIt(item); return; }
   if (act==="skip"){

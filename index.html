@@ -39,21 +39,31 @@
   .empty{padding:64px 20px;text-align:center;color:var(--mute)}
   .empty b{display:block;font-family:var(--serif);font-size:20px;color:var(--ink);margin-bottom:6px;font-weight:500}
 
-  .story{border-bottom:1px solid var(--line);padding:18px 0;cursor:pointer}
+  .story{border-bottom:1px solid var(--line);padding:18px 0}
+  .story .row{display:flex;gap:14px;align-items:flex-start}
+  .story .body{flex:1;min-width:0}
+  .story .side{flex:none}
   .story .top{display:flex;align-items:center;gap:10px;margin-bottom:7px;font-size:13px;color:var(--mute);flex-wrap:wrap}
   .story .top .src{font-weight:600;color:var(--ink)}
+  .ha{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:15px;color:var(--mute)}
+  .ha .dot{width:11px;height:11px;border-radius:50%;background:var(--line)}
+  .ha.h5 .dot,.ha.h4 .dot{background:var(--gold);box-shadow:0 0 0 3px rgba(255,209,0,.25)}
+  .ha.h5,.ha.h4{color:var(--ink)}
+  .ha.h3 .dot{background:var(--faint)}
+  .type-tag{font-size:12px;font-weight:600;color:var(--ink);background:var(--line2);padding:2px 8px;border-radius:5px;text-transform:capitalize}
   .story h3{margin:0;font-family:var(--serif);font-weight:500;font-size:21px;line-height:1.25;letter-spacing:-.005em}
+  .story .note{margin-top:6px;color:var(--mute);font-size:15px}
   .story .drawer{max-height:0;overflow:hidden;transition:max-height .22s ease}
   .story.open .drawer{max-height:1400px}
-  .more{font-size:12px;font-weight:600;color:var(--ink);background:var(--line2);padding:1px 9px;border-radius:999px}
+  .more{font-size:12px;font-weight:600;color:var(--ink);background:var(--line2);padding:1px 9px;border-radius:999px;border:0;cursor:pointer}
+  .more:after{content:" ▾"} .story.open .more:after{content:" ▴"}
+  @media (max-width:520px){.story .row{flex-direction:column}.story .side .btn{width:100%}}
   .also{margin-top:16px;padding-top:12px;border-top:1px solid var(--line2)}
   .alsoh{font-size:13px;font-weight:600;color:var(--mute);margin-bottom:6px}
   .also a{display:block;font-size:14px;color:var(--ink);padding:5px 0;text-decoration:none;line-height:1.35}
   .also a:hover{text-decoration:underline}
   @media (prefers-reduced-motion:reduce){.story .drawer{transition:none}}
-  .story .summary{margin-top:12px;font-size:15px}
-  .story .row-actions{display:flex;gap:10px;margin-top:14px}
-  .btn{border:1px solid var(--line);background:var(--card);border-radius:var(--r);padding:11px 16px;font-weight:600;font-size:15px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:var(--mute)}
+  .btn{border:1px solid var(--line);background:var(--card);border-radius:var(--r);padding:8px 14px;font-weight:600;font-size:14px;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:var(--mute)}
   .btn:active{transform:translateY(1px)}
   .foot{padding:28px 0 0;font-size:13px;color:var(--faint)}
   .load{padding:48px 0;text-align:center;color:var(--mute)}
@@ -174,24 +184,35 @@ function render(){
   }
   const open = new Set([...document.querySelectorAll(".story.open")].map(x => x.dataset.id));
   groups.forEach(({ lead:i, others }) => {
-    const a = el("article","story" + (open.has(i.id) ? " open" : "")); a.dataset.id = i.id;
-    const top = el("div","top"); top.append(el("span","src",i.source_name || ""), el("span","",ago(i.published_at)));
-    if (others.length) top.appendChild(el("span","more","+" + others.length + (others.length === 1 ? " more source" : " more sources")));
-    const d = el("div","drawer"), inn = el("div","inner");
-    if (i.summary) inn.appendChild(el("div","summary",i.summary));
-    const acts = el("div","row-actions"), link = el("a","btn","Open ↗");
-    link.href = safeUrl(i.url); link.target = "_blank"; link.rel = "noopener noreferrer";
-    acts.appendChild(link); inn.appendChild(acts);
+    const a = el("article","story" + (others.length && open.has(i.id) ? " open" : "")); a.dataset.id = i.id;
+    const row = el("div","row"), body = el("div","body"), side = el("div","side");
+    const top = el("div","top");
+    const h = i.human_angle;
+    if (h){ const ha = el("span","ha h" + h); ha.append(el("span","dot"), document.createTextNode(h + "/5")); top.appendChild(ha); }
+    if (i.story_type) top.appendChild(el("span","type-tag",i.story_type.replace(/_/g," ")));
+    top.append(el("span","src",i.source_name || ""), el("span","",ago(i.published_at)));
     if (others.length){
-      const box2 = el("div","also"); box2.appendChild(el("div","alsoh","Also reported by"));
-      others.forEach(o => { const l = el("a","", (o.source_name || "Source") + ": " + o.title); l.href = safeUrl(o.url); l.target = "_blank"; l.rel = "noopener noreferrer"; box2.appendChild(l); });
-      inn.appendChild(box2);
+      const m = el("button","more","+" + others.length + (others.length === 1 ? " more source" : " more sources"));
+      m.setAttribute("aria-expanded", a.classList.contains("open")); m.dataset.toggle = "1"; top.appendChild(m);
     }
-    d.appendChild(inn);
-    a.append(top, el("h3","",i.title), d); box.appendChild(a);
+    body.append(top, el("h3","",i.title));
+    const note = i.angle_note || (i.summary ? i.summary.slice(0,220) + (i.summary.length > 220 ? "…" : "") : "");
+    if (note) body.appendChild(el("div","note",note));
+    const link = el("a","btn","Open ↗"); link.href = safeUrl(i.url); link.target = "_blank"; link.rel = "noopener noreferrer";
+    side.appendChild(link); row.append(body, side); a.appendChild(row);
+    if (others.length){
+      const d = el("div","drawer"), inn = el("div","inner"), box2 = el("div","also");
+      box2.appendChild(el("div","alsoh","Also reported by"));
+      others.forEach(o => { const l = el("a","", (o.source_name || "Source") + ": " + o.title); l.href = safeUrl(o.url); l.target = "_blank"; l.rel = "noopener noreferrer"; box2.appendChild(l); });
+      inn.appendChild(box2); d.appendChild(inn); a.appendChild(d);
+    }
+    box.appendChild(a);
   });
 }
-$("#list").addEventListener("click", e => { if (e.target.closest("a")) return; e.target.closest(".story")?.classList.toggle("open"); });
+$("#list").addEventListener("click", e => {
+  const m = e.target.closest("[data-toggle]"); if (!m) return;
+  const art = m.closest(".story"); m.setAttribute("aria-expanded", art.classList.toggle("open"));
+});
 $("#q").addEventListener("input", render);
 load(); setInterval(load, 5 * 60 * 1000);
 </script>
