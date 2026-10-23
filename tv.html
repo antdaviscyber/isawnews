@@ -4,15 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>CYFR News</title>
+<title>ISAW News TV</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500;1,6..72,600&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --night:#1E1033; --deep:#140A24; --raise:#2A1947; --cream:#F8E7C0; --pink:#FF4696;
-    --dim:rgba(248,231,192,.66); --faint:rgba(248,231,192,.16);
-    --serif:"Instrument Serif",Georgia,serif; --head:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif; --sans:"Instrument Sans",system-ui,sans-serif;
+    --night:#16181D; --deep:#0F1115; --raise:#22252C; --cream:#F6F6F3; --pink:#FFD100;
+    --dim:rgba(246,246,243,.68); --faint:rgba(246,246,243,.18);
+    --serif:"Newsreader",Georgia,serif; --head:"Hanken Grotesk",system-ui,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   /* 1rem = 24px at 1920x1080, scales with the screen */
@@ -23,8 +23,8 @@
   .stage{height:100vh;display:grid;grid-template-rows:auto 1fr auto}
 
   .bar{display:flex;align-items:baseline;justify-content:space-between;padding:1.6rem 3rem 0}
-  .mark{font-family:var(--sans);font-weight:700;font-size:1.9rem;letter-spacing:.02em}
-  .mark i{font-family:var(--serif);font-weight:400;font-size:2.3rem;margin-left:.35rem;color:var(--pink)}
+  .mark{font-family:var(--serif);font-weight:600;font-size:2.4rem;letter-spacing:-.01em;line-height:1}
+  .mark i{font-family:var(--serif);font-style:italic;font-weight:600;font-size:2.4rem;margin-left:.35rem;color:var(--pink)}
   .clock{font-size:1.3rem;color:var(--dim);font-variant-numeric:tabular-nums}
   .clock b{color:var(--cream);font-weight:600;font-size:1.9rem;margin-right:.9rem}
   .clock .stale{color:var(--pink)}
@@ -59,7 +59,7 @@
   .q.now::before{content:"";position:absolute;left:-1.1rem;top:1rem;bottom:1.05rem;width:.28rem;border-radius:.2rem;background:var(--faint)}
   .q.now .fill{position:absolute;left:-1.1rem;top:1rem;width:.28rem;border-radius:.2rem;background:var(--pink);height:0}
   .q.now p{color:#fff}
-  .q:not(.now) p{color:rgba(248,231,192,.88)}
+  .q:not(.now) p{color:rgba(246,246,243,.88)}
 
   .tick{display:flex;align-items:stretch;background:var(--cream);color:var(--night);height:4.4rem;overflow:hidden}
   .tick .lab{flex:none;display:flex;align-items:center;background:var(--pink);color:var(--night);font-weight:700;font-size:1.5rem;padding:0 2rem;z-index:2}
@@ -89,7 +89,7 @@
 
 <div class="stage">
   <header class="bar">
-    <div class="mark">CYFR<i>News</i></div>
+    <div class="mark">ISAW<i>News</i></div>
     <div class="clock"><b id="clock">--:--</b><span id="upd">Loading</span></div>
   </header>
 
@@ -109,7 +109,7 @@
   </footer>
 </div>
 
-<a class="navlink" href="https://isawnews.com/">Back to the wire</a>
+<a class="navlink" href="./">Back to the wire</a>
 <div class="empty" id="empty"><div><h1>Nothing to show yet</h1><p id="emptyMsg">Stories rated 3 stars or more appear here. Checking again in a minute.</p></div></div>
 
 <script>
