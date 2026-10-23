@@ -7,12 +7,51 @@
 <title>ISAW News TV</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500;1,6..72,600&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500;1,6..72,600&family=Hanken+Grotesk:wght@400;500;600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --night:#16181D; --deep:#0F1115; --raise:#22252C; --cream:#F6F6F3; --pink:#FFD100;
-    --dim:rgba(246,246,243,.68); --faint:rgba(246,246,243,.18);
+  @font-face{font-family:"Barber Chop";src:url("https://raw.githubusercontent.com/antdaviscyber/assets/main/BarberChop.otf") format("opentype");font-display:swap}
+  /* Skins. Each one sets: bg (night, deep), text (cream), accent (pink), and the ticker/tag colours. */
+  :root,html[data-skin="isaw"]{
+    --night:#16181D; --deep:#0F1115; --cream:#F6F6F3; --pink:#FFD100;
+    --dim:rgba(246,246,243,.68); --faint:rgba(246,246,243,.18); --body2:rgba(246,246,243,.88);
+    --tickbg:#F6F6F3; --tickfg:#16181D; --labbg:#FFD100; --labfg:#16181D; --tagbg:#F6F6F3; --tagfg:#16181D; --dot:#FFD100;
     --serif:"Newsreader",Georgia,serif; --head:"Hanken Grotesk",system-ui,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif;
+    --markfont:"Newsreader",Georgia,serif; --marksize:2.4rem; --markw:600; --marki:italic; --marksp:-.01em; --h2font:"Newsreader",Georgia,serif; --h2w:400; --h2size:1.9rem;
+  }
+  html[data-skin="cyfr"]{
+    --night:#1E1033; --deep:#140A24; --cream:#F8E7C0; --pink:#FF4696;
+    --dim:rgba(248,231,192,.66); --faint:rgba(248,231,192,.16); --body2:rgba(248,231,192,.88);
+    --tickbg:#F8E7C0; --tickfg:#1E1033; --labbg:#FF4696; --labfg:#1E1033; --tagbg:#F8E7C0; --tagfg:#1E1033; --dot:#FF4696;
+    --serif:"Instrument Serif",Georgia,serif; --head:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif; --sans:"Instrument Sans",system-ui,sans-serif;
+    --markfont:"Instrument Sans",system-ui,sans-serif; --marksize:1.9rem; --markw:700; --marki:normal; --marksp:.02em; --h2font:"Instrument Serif",Georgia,serif; --h2w:400; --h2size:1.9rem;
+  }
+  html[data-skin="adc"]{
+    --night:#0A0A0A; --deep:#000; --cream:#F4F4F0; --pink:#FFD100;
+    --dim:rgba(244,244,240,.68); --faint:rgba(244,244,240,.2); --body2:rgba(244,244,240,.88);
+    --tickbg:#FFD100; --tickfg:#000; --labbg:#000; --labfg:#FFD100; --tagbg:#FFD100; --tagfg:#000; --dot:#000;
+    --serif:"Instrument Serif",Georgia,serif; --head:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif; --sans:"Instrument Sans",system-ui,sans-serif;
+    --markfont:"Barber Chop","Bricolage Grotesque",sans-serif; --marksize:2.7rem; --markw:400; --marki:normal; --marksp:.03em; --h2font:"Bricolage Grotesque",sans-serif; --h2w:600; --h2size:1.7rem;
+  }
+  html[data-skin="harbour"]{
+    --night:#0B1B2E; --deep:#07111E; --cream:#EAF4FF; --pink:#37D0FF;
+    --dim:rgba(234,244,255,.66); --faint:rgba(234,244,255,.17); --body2:rgba(234,244,255,.88);
+    --tickbg:#EAF4FF; --tickfg:#0B1B2E; --labbg:#37D0FF; --labfg:#0B1B2E; --tagbg:#EAF4FF; --tagfg:#0B1B2E; --dot:#0B93C2;
+    --serif:"Newsreader",Georgia,serif; --head:"Bricolage Grotesque","Hanken Grotesk",sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif;
+    --markfont:"Bricolage Grotesque",sans-serif; --marksize:2.2rem; --markw:800; --marki:normal; --marksp:-.01em; --h2font:"Newsreader",Georgia,serif; --h2w:500; --h2size:1.9rem;
+  }
+  html[data-skin="signal"]{
+    --night:#0D1F17; --deep:#08140F; --cream:#EEF7EA; --pink:#B8F13C;
+    --dim:rgba(238,247,234,.66); --faint:rgba(238,247,234,.17); --body2:rgba(238,247,234,.88);
+    --tickbg:#B8F13C; --tickfg:#0D1F17; --labbg:#0D1F17; --labfg:#B8F13C; --tagbg:#B8F13C; --tagfg:#0D1F17; --dot:#0D1F17;
+    --serif:"Instrument Serif",Georgia,serif; --head:"Bricolage Grotesque","Hanken Grotesk",sans-serif; --sans:"Instrument Sans",system-ui,sans-serif;
+    --markfont:"Bricolage Grotesque",sans-serif; --marksize:2.2rem; --markw:800; --marki:normal; --marksp:-.01em; --h2font:"Instrument Serif",Georgia,serif; --h2w:400; --h2size:1.9rem;
+  }
+  html[data-skin="daylight"]{
+    --night:#F6F4EE; --deep:#E9E6DD; --cream:#16181D; --pink:#E5322D;
+    --dim:rgba(22,24,29,.62); --faint:rgba(22,24,29,.16); --body2:rgba(22,24,29,.86);
+    --tickbg:#16181D; --tickfg:#F6F4EE; --labbg:#E5322D; --labfg:#FFFFFF; --tagbg:#16181D; --tagfg:#F6F4EE; --dot:#E5322D;
+    --serif:"Newsreader",Georgia,serif; --head:"Hanken Grotesk",system-ui,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif;
+    --markfont:"Newsreader",Georgia,serif; --marksize:2.4rem; --markw:600; --marki:italic; --marksp:-.01em; --h2font:"Newsreader",Georgia,serif; --h2w:400; --h2size:1.9rem;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   /* 1rem = 24px at 1920x1080, scales with the screen */
@@ -23,8 +62,8 @@
   .stage{height:100vh;display:grid;grid-template-rows:auto 1fr auto}
 
   .bar{display:flex;align-items:baseline;justify-content:space-between;padding:1.6rem 3rem 0}
-  .mark{font-family:var(--serif);font-weight:600;font-size:2.4rem;letter-spacing:-.01em;line-height:1}
-  .mark i{font-family:var(--serif);font-style:italic;font-weight:600;font-size:2.4rem;margin-left:.35rem;color:var(--pink)}
+  .mark{font-family:var(--markfont);font-weight:var(--markw);font-size:var(--marksize);letter-spacing:var(--marksp);line-height:1}
+  .mark i{font-style:var(--marki);margin-left:.45rem;color:var(--pink)}
   .clock{font-size:1.3rem;color:var(--dim);font-variant-numeric:tabular-nums}
   .clock b{color:var(--cream);font-weight:600;font-size:1.9rem;margin-right:.9rem}
   .clock .stale{color:var(--pink)}
@@ -39,7 +78,7 @@
   .stars svg{width:3.4rem;height:3.4rem;display:block}
   .stars .on{fill:var(--pink)}
   .stars .off{fill:none;stroke:var(--faint);stroke-width:5}
-  .tag{font-size:1.25rem;font-weight:600;background:var(--cream);color:var(--night);padding:.2rem .85rem;border-radius:.3rem}
+  .tag{font-size:1.25rem;font-weight:600;background:var(--tagbg);color:var(--tagfg);padding:.2rem .85rem;border-radius:.3rem}
   .fresh{font-size:1.25rem;font-weight:600;color:var(--pink);border:.15rem solid var(--pink);padding:.05rem .7rem;border-radius:.3rem}
   .hero h1{font-family:var(--head);font-weight:700;font-size:3.9rem;line-height:1.06;letter-spacing:-.025em;max-width:50rem;text-wrap:balance}
   .hero h1.m{font-size:3.3rem}
@@ -48,7 +87,7 @@
   .hero .src{margin-top:1.6rem;font-size:1.3rem;color:var(--cream);font-weight:600}
   .hero .src span{color:var(--dim);font-weight:400;margin-left:1rem}
 
-  .next h2{font-family:var(--serif);font-weight:400;font-size:1.9rem;margin-bottom:.9rem;color:var(--dim)}
+  .next h2{font-family:var(--h2font);font-weight:var(--h2w);font-size:var(--h2size);margin-bottom:.9rem;color:var(--dim)}
   .next{display:flex;flex-direction:column;min-height:0;padding-top:1rem;overflow:hidden}
   .q{border-top:.08rem solid var(--faint);padding:1rem 0 1.05rem;position:relative}
   .q .mini{display:flex;gap:.18rem;margin-bottom:.45rem}
@@ -58,15 +97,15 @@
   .q small{display:block;margin-top:.4rem;font-size:1rem;color:var(--dim)}
   .q.now::before{content:"";position:absolute;left:-1.1rem;top:1rem;bottom:1.05rem;width:.28rem;border-radius:.2rem;background:var(--faint)}
   .q.now .fill{position:absolute;left:-1.1rem;top:1rem;width:.28rem;border-radius:.2rem;background:var(--pink);height:0}
-  .q.now p{color:#fff}
-  .q:not(.now) p{color:rgba(246,246,243,.88)}
+    .q:not(.now) p{color:var(--body2)}
+  .q.now p{color:var(--cream)}
 
-  .tick{display:flex;align-items:stretch;background:var(--cream);color:var(--night);height:4.4rem;overflow:hidden}
-  .tick .lab{flex:none;display:flex;align-items:center;background:var(--pink);color:var(--night);font-weight:700;font-size:1.5rem;padding:0 2rem;z-index:2}
+  .tick{display:flex;align-items:stretch;background:var(--tickbg);color:var(--tickfg);height:4.4rem;overflow:hidden}
+  .tick .lab{flex:none;display:flex;align-items:center;background:var(--labbg);color:var(--labfg);font-weight:700;font-size:1.5rem;padding:0 2rem;z-index:2}
   .tick .run{flex:1;overflow:hidden;position:relative}
   .track{position:absolute;left:0;top:0;bottom:0;display:flex;align-items:center;white-space:nowrap;will-change:transform;animation:run linear infinite}
   .track span{font-size:1.65rem;font-weight:600;padding-right:1.2rem}
-  .track svg{width:1.1rem;height:1.1rem;fill:var(--pink);margin-right:1.2rem;flex:none}
+  .track svg{width:1.1rem;height:1.1rem;fill:var(--dot);margin-right:1.2rem;flex:none}
   .track .item{display:flex;align-items:center}
   @keyframes run{to{transform:translateX(-50%)}}
 
@@ -78,6 +117,8 @@
   .empty h1{font-family:var(--head);font-weight:700;font-size:4rem;margin-bottom:1rem}
   .empty p{font-size:1.5rem;color:var(--dim)}
 
+  .skinchip{position:fixed;right:3rem;bottom:5.2rem;font-size:1.1rem;font-weight:600;color:var(--cream);background:var(--faint);padding:.35rem .9rem;border-radius:.4rem;opacity:0;transition:opacity .3s;pointer-events:none}
+  .skinchip.on{opacity:1}
   @media (prefers-reduced-motion:reduce){.hero-in{transition:none}.track{animation-duration:600s!important}}
 </style>
 </head>
@@ -89,7 +130,7 @@
 
 <div class="stage">
   <header class="bar">
-    <div class="mark">ISAW<i>News</i></div>
+    <div class="mark"><span id="brandA">ISAW</span><i id="brandB">News</i></div>
     <div class="clock"><b id="clock">--:--</b><span id="upd">Loading</span></div>
   </header>
 
@@ -109,10 +150,37 @@
   </footer>
 </div>
 
+<div class="skinchip" id="skinchip"></div>
 <a class="navlink" href="./">Back to the wire</a>
 <div class="empty" id="empty"><div><h1>Nothing to show yet</h1><p id="emptyMsg">Stories rated 3 stars or more appear here. Checking again in a minute.</p></div></div>
 
 <script>
+// Skins: ?skin=cyfr  (isaw, cyfr, adc, harbour, signal, daylight). Press T, Enter or the arrow keys on a remote to cycle; the choice is remembered on this device.
+const SKINS = [
+  { id:"isaw",     name:"ISAW News",         a:"ISAW",           b:"News", title:"ISAW News TV" },
+  { id:"cyfr",     name:"CYFR News",         a:"CYFR",           b:"News", title:"CYFR News" },
+  { id:"adc",      name:"@antdaviscyber",    a:"@antdaviscyber", b:"News", title:"@antdaviscyber News" },
+  { id:"harbour",  name:"Harbour",           a:"ISAW",           b:"News", title:"ISAW News TV" },
+  { id:"signal",   name:"Signal",            a:"ISAW",           b:"News", title:"ISAW News TV" },
+  { id:"daylight", name:"Daylight",          a:"ISAW",           b:"News", title:"ISAW News TV" },
+];
+let skinI = 0, chipT = null;
+function applySkin(i, announce){
+  skinI = (i + SKINS.length) % SKINS.length; const k = SKINS[skinI];
+  document.documentElement.dataset.skin = k.id; document.title = k.title;
+  document.getElementById("brandA").textContent = k.a; document.getElementById("brandB").textContent = k.b;
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = getComputedStyle(document.documentElement).getPropertyValue("--night").trim();
+  if (announce){ const c = document.getElementById("skinchip"); c.textContent = k.name + "  (" + (skinI + 1) + "/" + SKINS.length + ")"; c.classList.add("on"); clearTimeout(chipT); chipT = setTimeout(() => c.classList.remove("on"), 2500); try { localStorage.setItem("isaw-tv-skin", k.id); } catch {} }
+}
+(function(){
+  let want = new URLSearchParams(location.search).get("skin"); if (!want){ try { want = localStorage.getItem("isaw-tv-skin"); } catch {} }
+  const i = SKINS.findIndex(k => k.id === want); applySkin(i < 0 ? 0 : i, false);
+  addEventListener("keydown", e => {
+    if (e.key === "t" || e.key === "T" || e.key === "Enter" || e.key === "ArrowRight") applySkin(skinI + 1, true);
+    else if (e.key === "ArrowLeft") applySkin(skinI - 1, true);
+  });
+})();
+
 const SUPABASE_URL = "https://xvymazorpsuyylbliihw.supabase.co";
 const ANON = "sb_publishable_nllLKPRo7Tr6XYkA1wzIsw_X01mXhU0";
 
