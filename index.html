@@ -35,6 +35,9 @@
   .tools{display:flex;gap:10px;align-items:center;padding:16px 0 4px}
   .tools input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:11px 16px;font:inherit;font-size:15px;color:inherit}
   .tools input:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgba(22,24,29,.08)}
+  .seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px;flex:none}
+  .seg button{font-size:13px;font-weight:700;padding:6px 13px;border-radius:999px;color:var(--mute)}
+  .seg button[aria-pressed=true]{background:var(--ink);color:#fff}
   .count{font-size:13px;color:var(--mute);white-space:nowrap}
   .empty{padding:64px 20px;text-align:center;color:var(--mute)}
   .empty b{display:block;font-family:var(--serif);font-size:20px;color:var(--ink);margin-bottom:6px;font-weight:500}
@@ -78,6 +81,7 @@
 <main>
   <div class="tools">
     <input type="search" id="q" placeholder="Search the wire…" aria-label="Search the wire">
+    <div class="seg" id="region" role="group" aria-label="Region"><button data-r="all" aria-pressed="true">All</button><button data-r="uk" aria-pressed="false">UK</button><button data-r="us" aria-pressed="false">US</button></div>
     <span class="count" id="count"></span>
   </div>
   <div id="list"><div class="load">Loading the wire…</div></div>
@@ -135,7 +139,9 @@ if (/access_token|type=(invite|recovery|magiclink)|error_code/.test(location.has
 const SUPABASE_URL = "https://xvymazorpsuyylbliihw.supabase.co";
 const ANON = "sb_publishable_nllLKPRo7Tr6XYkA1wzIsw_X01mXhU0";
 const $ = s => document.querySelector(s);
-let items = [], loaded = false;
+let items = [], loaded = false, region = "all";
+try { const r = localStorage.getItem("isaw-region"); if (["all","uk","us"].includes(r)) region = r; } catch {}
+function syncRegion(){ document.querySelectorAll("#region button").forEach(b => b.setAttribute("aria-pressed", b.dataset.r === region)); }
 
 $("#dateline").textContent = new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
 
@@ -159,7 +165,7 @@ function safeUrl(u){ try { const x = new URL(u); return /^https?:$/.test(x.proto
 
 async function load(){
   try {
-    const r = await fetch(SUPABASE_URL + "/rest/v1/rpc/public_wire", {
+    const r = await fetch(SUPABASE_URL + "/rest/v1/rpc/public_wire_v2", {
       method:"POST",
       headers:{ apikey:ANON, Authorization:"Bearer " + ANON, "Content-Type":"application/json" },
       body: JSON.stringify({ max_age_hours:168, max_items:150 })
@@ -174,12 +180,13 @@ async function load(){
 
 function render(){
   const term = $("#q").value.trim().toLowerCase();
-  const list = term ? items.filter(i => `${i.title} ${i.summary} ${i.source_name}`.toLowerCase().includes(term)) : items;
+  let list = region === "all" ? items : items.filter(i => i.region === region);
+  if (term) list = list.filter(i => `${i.title} ${i.summary} ${i.source_name}`.toLowerCase().includes(term));
   const groups = groupStories(list);
   $("#count").textContent = groups.length + (groups.length === 1 ? " story" : " stories");
   const box = $("#list"); box.replaceChildren();
   if (!list.length){
-    const e = el("div","empty"); e.append(el("b","", term ? "No matches" : "The wire is clear"), document.createTextNode(term ? `Nothing matches "${term}".` : "New stories arrive every few minutes."));
+    const e = el("div","empty"); e.append(el("b","", term ? "No matches" : "The wire is clear"), document.createTextNode(term ? `Nothing matches "${term}".` : region !== "all" ? `No ${region.toUpperCase()} stories right now. Try All.` : "New stories arrive every few minutes."));
     box.appendChild(e); return;
   }
   const open = new Set([...document.querySelectorAll(".story.open")].map(x => x.dataset.id));
@@ -214,6 +221,8 @@ $("#list").addEventListener("click", e => {
   const art = m.closest(".story"); m.setAttribute("aria-expanded", art.classList.toggle("open"));
 });
 $("#q").addEventListener("input", render);
+$("#region").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; region = b.dataset.r; try { localStorage.setItem("isaw-region", region); } catch {} syncRegion(); render(); });
+syncRegion();
 load(); setInterval(load, 5 * 60 * 1000);
 </script>
 </body>

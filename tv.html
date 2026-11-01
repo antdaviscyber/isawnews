@@ -176,7 +176,13 @@ function applySkin(i, announce){
   let want = new URLSearchParams(location.search).get("skin"); if (!want){ try { want = localStorage.getItem("isaw-tv-skin"); } catch {} }
   const i = SKINS.findIndex(k => k.id === want); applySkin(i < 0 ? 0 : i, false);
   addEventListener("keydown", e => {
-    if (e.key === "t" || e.key === "T" || e.key === "Enter" || e.key === "ArrowRight") applySkin(skinI + 1, true);
+    if (e.key === "r" || e.key === "R" || e.key === "ArrowUp" || e.key === "ArrowDown"){
+      const order = ["all","uk","us"]; REGION = order[(order.indexOf(REGION) + 1) % 3];
+      try { localStorage.setItem("isaw-tv-region", REGION); } catch {}
+      const c = document.getElementById("skinchip"); c.textContent = "Region: " + (REGION === "all" ? "All" : REGION.toUpperCase()); c.classList.add("on"); clearTimeout(chipT); chipT = setTimeout(() => c.classList.remove("on"), 2500);
+      sig = ""; apply(REGION === "all" ? allRows : allRows.filter(x => x.region === REGION));
+    }
+    else if (e.key === "t" || e.key === "T" || e.key === "Enter" || e.key === "ArrowRight") applySkin(skinI + 1, true);
     else if (e.key === "ArrowLeft") applySkin(skinI - 1, true);
   });
 })();
@@ -188,13 +194,15 @@ const ANON = "sb_publishable_nllLKPRo7Tr6XYkA1wzIsw_X01mXhU0";
 const P = new URLSearchParams(location.search);
 const MIN   = Math.min(5, Math.max(1, +P.get("min") || 3));
 const SECS  = Math.max(6, +P.get("secs") || 16);
+let REGION = (P.get("region") || "").toLowerCase();
+if (!["all","uk","us"].includes(REGION)){ REGION = "all"; try { const r = localStorage.getItem("isaw-tv-region"); if (["all","uk","us"].includes(r)) REGION = r; } catch {} }
 const HOURS = Math.max(1, +P.get("hours") || 72);
 const REFRESH_MS = 90 * 1000;
 
 const STYPE = { people_impacted:"People", watch_behaviour:"Behaviour", active_warning:"Warning", niche_quirky:"Quirky", technical:"Technical" };
 const $ = s => document.querySelector(s);
 
-let items = [], idx = 0, lastOk = 0, sig = "", timer = null, tick = null;
+let allRows = [], items = [], idx = 0, lastOk = 0, sig = "", timer = null, tick = null;
 
 function starsEl(n, cls){
   const wrap = document.createElement("div"); wrap.className = cls;
@@ -217,15 +225,15 @@ const isFresh = d => (Date.now() - new Date(d)) < 2 * 3600 * 1000;
 
 async function load(){
   try {
-    const r = await fetch(SUPABASE_URL + "/rest/v1/rpc/tv_feed", {
+    const r = await fetch(SUPABASE_URL + "/rest/v1/rpc/tv_feed_v2", {
       method:"POST",
       headers:{ apikey:ANON, Authorization:"Bearer " + ANON, "Content-Type":"application/json" },
       body: JSON.stringify({ min_angle:MIN, max_age_hours:HOURS, max_items:40 })
     });
     if (!r.ok) throw new Error(r.status);
-    const rows = (await r.json()).map(tidy);
+    allRows = (await r.json()).map(tidy);
     lastOk = Date.now();
-    apply(rows);
+    apply(REGION === "all" ? allRows : allRows.filter(x => x.region === REGION));
   } catch (e) {
     // keep showing what we have; the clock line flags that it is stale
   }

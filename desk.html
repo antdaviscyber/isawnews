@@ -54,6 +54,9 @@
   .type-tag{font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--ink);background:var(--line2);padding:2px 8px;border-radius:5px;text-transform:capitalize}
   .story h3{margin:0;font-family:var(--serif);font-weight:500;font-size:21px;line-height:1.25;letter-spacing:-.005em}
   .story .note{margin-top:6px;color:var(--mute);font-size:15px}
+  .rseg{display:inline-flex;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:3px;margin-bottom:10px}
+  .rseg button{font-size:13px;font-weight:700;padding:6px 13px;border-radius:999px;color:var(--mute)}
+  .rseg button[aria-pressed=true]{background:var(--ink);color:#fff}
   .story .row{display:flex;gap:14px;align-items:flex-start}
   .story .body{flex:1;min-width:0}
   .story .side{display:flex;flex-direction:column;gap:8px;flex:none}
@@ -214,7 +217,7 @@
     </nav>
   </header>
   <main>
-    <div id="wireSearch" class="wire-search"><input type="search" id="wireSearchInput" placeholder="Search the wire…"></div>
+    <div id="wireSearch" class="wire-search"><div class="rseg" id="regionToggle" role="group" aria-label="Region"><button data-r="all" aria-pressed="true">All</button><button data-r="uk" aria-pressed="false">UK</button><button data-r="us" aria-pressed="false">US</button></div><input type="search" id="wireSearchInput" placeholder="Search the wire…"></div>
     <div id="queue"></div>
     <div id="drafts" hidden></div>
     <div id="adminview" hidden>
@@ -411,11 +414,15 @@ $("#sortToggle").onclick = e => {
   loadQueue();
 };
 $("#wireSearchInput").addEventListener("input", renderQueue);
+let regionSel = localStorage.getItem("isaw_region") || "all";
+const syncRegion = () => $$("#regionToggle button").forEach(b => b.setAttribute("aria-pressed", b.dataset.r===regionSel));
+$("#regionToggle").onclick = e => { const b = e.target.closest("button"); if (!b) return; regionSel = b.dataset.r; localStorage.setItem("isaw_region", regionSel); syncRegion(); renderQueue(); };
+syncRegion();
 
 async function loadQueue(){
   let q = sb.from("raw_items")
-    .select("id,url,title,summary,published_at,fetched_at,human_angle,angle_note,story_type,sources(name,weight)")
-    .eq("status","new").limit(200);
+    .select("id,url,title,summary,published_at,fetched_at,human_angle,angle_note,story_type,region,sources(name,weight,region)")
+    .eq("status","new").not("on_topic","is",false).limit(200);
   q = sortMode==="human"
     ? q.order("human_angle",{ascending:false,nullsFirst:false}).order("published_at",{ascending:false,nullsFirst:false})
     : q.order("published_at",{ascending:false,nullsFirst:false});
@@ -426,7 +433,8 @@ async function loadQueue(){
 }
 function renderQueue(){
   const term = $("#wireSearchInput").value.trim().toLowerCase();
-  const list = term ? queue.filter(i => `${i.title} ${i.summary??""} ${i.sources?.name??""}`.toLowerCase().includes(term)) : queue;
+  let list = regionSel==="all" ? queue : queue.filter(i => (i.region ?? i.sources?.region) === regionSel);
+  if (term) list = list.filter(i => `${i.title} ${i.summary??""} ${i.sources?.name??""}`.toLowerCase().includes(term));
   const el = $("#queue");
   if (!list.length){
     el.innerHTML = term
