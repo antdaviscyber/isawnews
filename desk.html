@@ -57,6 +57,19 @@
   .rseg{display:inline-flex;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:3px;margin-bottom:10px}
   .rseg button{font-size:13px;font-weight:700;padding:6px 13px;border-radius:999px;color:var(--mute)}
   .rseg button[aria-pressed=true]{background:var(--ink);color:#fff}
+  .pick{flex:none;width:28px;height:28px;margin-top:1px;border:2px solid var(--line);background:var(--card);border-radius:7px;display:inline-flex;align-items:center;justify-content:center;color:transparent;font-weight:800;font-size:17px;line-height:1}
+  .pick:hover{border-color:var(--mute)}
+  .pick[aria-pressed=true]{background:var(--gold);border-color:var(--gold);color:var(--goldink)}
+  .story.picked{background:rgba(255,209,0,.12);box-shadow:-14px 0 0 rgba(255,209,0,.12),inset 3px 0 0 var(--gold)}
+  .pickbar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--ink);color:#fff;border-top:1px solid #3A3F49;display:none}
+  .pickbar.on{display:block}
+  .pickbar-in{max-width:1060px;margin:0 auto;padding:12px 20px calc(env(safe-area-inset-bottom) + 12px);display:flex;gap:10px;align-items:center}
+  .pickbar .n{font-weight:700;font-size:15px;margin-right:auto}
+  .pickbar .btn{padding:10px 16px}
+  .pickbar .clear{background:transparent;border-color:#4A505A;color:#fff}
+  .pickbar .send{background:var(--gold);border-color:var(--gold);color:var(--goldink)}
+  body.picking main{padding-bottom:96px}
+  @media (max-width:520px){.pickbar-in{flex-wrap:wrap}.pickbar .n{width:100%}.pickbar .btn{flex:1}}
   .story .row{display:flex;gap:14px;align-items:flex-start}
   .story .body{flex:1;min-width:0}
   .story .side{display:flex;flex-direction:column;gap:8px;flex:none}
@@ -270,6 +283,7 @@
 </div>
 
 <div id="load" class="load"><div class="box"><div class="wire"></div><div class="msg" id="loadMsg">Working</div><div class="sub" id="loadSub"></div></div></div>
+<div id="pickbar" class="pickbar" role="region" aria-label="Selected stories"><div class="pickbar-in"><span class="n" id="pickN"></span><button class="btn clear" id="pickClear">Deselect all</button><button class="btn send" id="pickSend">Send to Claude</button></div></div>
 <div id="toast" class="toast"></div>
 
 <script type="module">
@@ -405,6 +419,7 @@ $$("nav.tabs [role=tab]").forEach(b => b.onclick = () => {
   $("#adminview").hidden = b.dataset.tab!=="admin";
   $("#sortToggle").style.visibility = b.dataset.tab==="queue" ? "visible" : "hidden";
   if (b.dataset.tab==="admin") loadAdmin();
+  updatePickBar();
 });
 $("#sortToggle").onclick = e => {
   const b = e.target.closest("button"); if (!b) return;
@@ -431,6 +446,49 @@ async function loadQueue(){
   $$("#sortToggle button").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode===sortMode));
   renderQueue();
 }
+// Multi-select: pick stories on the wire and send them to one Claude chat.
+const alsoMap = new Map();
+const picked = new Set(JSON.parse(sessionStorage.getItem("isaw_picked") || "[]"));
+function savePicked(){ try { sessionStorage.setItem("isaw_picked", JSON.stringify([...picked])); } catch {} }
+function updatePickBar(){
+  for (const id of [...picked]) if (!queue.some(x => x.id === id)) picked.delete(id);   // stories that left the wire
+  const n = picked.size, onWire = $("#queue") && !$("#queue").hidden;
+  $("#pickN").textContent = n + (n === 1 ? " story selected" : " stories selected");
+  $("#pickbar").classList.toggle("on", n > 0 && onWire);
+  document.body.classList.toggle("picking", n > 0 && onWire);
+  savePicked();
+}
+function sendPicked(){
+  const items = [...picked].map(id => queue.find(x => x.id === id)).filter(Boolean);
+  if (!items.length) return;
+  const clip = (s, n) => (s || "").length > n ? s.slice(0, n).trimEnd() + "…" : (s || "");
+  const blocks = items.map((it, k) => {
+    const others = (alsoMap.get(it.id) || []).slice(0, 3).map(o => `   Also: ${o.sources?.name ?? "Source"}: ${o.url}`).join("\n");
+    return `${k + 1}. ${it.title}\n   Source: ${it.sources?.name ?? "the source"}\n   Link: ${it.url}` + (it.summary ? `\n   Feed summary: ${clip(it.summary, 240)}` : "") + (others ? `\n${others}` : "");
+  }).join("\n\n");
+  const prompt = `I'm putting together a short-form video reel on cybersecurity and scam awareness, and I've picked ${items.length} ${items.length === 1 ? "story" : "stories"} from my news wire. They might be on the same subject, complement each other, or be separate topics for one multi-topic video.
+
+${blocks}
+
+Please:
+1. Open each link and read the actual article so you have the real details, not just the summaries above.
+2. For each story, tell me plainly in a line or two whether it is good for a reel and why (timely, surprising, relatable, or a clear lesson).
+3. Tell me how they relate: the same subject, complementary, or separate. Say if any should be dropped.
+4. Suggest 2 or 3 ways to build ONE video from them (for example one story as the hook with the others as evidence, a roundup with a running theme, or a "this week" structure), each with a rough running order and length.
+5. Then STOP and ask me which structure I want and whether to drop anything. Do not write a script until I tell you to go ahead.`;
+  const url = "https://claude.ai/new?q=" + encodeURIComponent(prompt);
+  if (url.length > 7000){
+    (navigator.clipboard?.writeText(prompt) ?? Promise.reject()).then(
+      () => { toast("Too long for a link. Copied: paste it into the new chat"); window.open("https://claude.ai/new", "_blank", "noopener"); },
+      () => toast("Too many stories for one link. Try fewer.")
+    );
+    return;
+  }
+  window.open(url, "_blank", "noopener");
+}
+$("#pickClear").onclick = () => { picked.clear(); document.querySelectorAll(".story.picked").forEach(a => { a.classList.remove("picked"); a.querySelector(".pick")?.setAttribute("aria-pressed", "false"); }); updatePickBar(); };
+$("#pickSend").onclick = sendPicked;
+
 function renderQueue(){
   const term = $("#wireSearchInput").value.trim().toLowerCase();
   let list = regionSel==="all" ? queue : queue.filter(i => (i.region ?? i.sources?.region) === regionSel);
@@ -440,12 +498,14 @@ function renderQueue(){
     el.innerHTML = term
       ? `<div class="empty"><b>No matches</b>Nothing on the wire matches "${esc(term)}".</div>`
       : `<div class="empty"><b>The wire is clear</b>New stories arrive every 15 minutes.</div>`;
-    return;
+    updatePickBar(); return;
   }
   const groups = groupStories(list.map(i => ({ ...i, published_at: i.published_at ?? i.fetched_at })));
+  groups.forEach(g => alsoMap.set(g.lead.id, g.others));
   el.innerHTML = groups.map(({ lead:i, others }) => `
-    <article class="story" data-id="${i.id}">
+    <article class="story${picked.has(i.id)?" picked":""}" data-id="${i.id}">
       <div class="row">
+        <button class="pick" data-act="pick" aria-pressed="${picked.has(i.id)}" aria-label="Select this story" title="Select">✓</button>
         <div class="body">
           <div class="top">
             ${angle(i.human_angle)}
@@ -464,6 +524,7 @@ function renderQueue(){
       </div>
       ${others.length ? `<div class="drawer"><div class="inner"><div class="also"><div class="alsoh">Also reported by</div>${others.map(o => `<a href="${esc(o.url)}" target="_blank" rel="noopener" data-act="open">${esc((o.sources?.name ?? "Source") + ": " + o.title)}</a>`).join("")}</div></div></div>` : ""}
     </article>`).join("");
+  updatePickBar();
 }
 $("#queue").addEventListener("click", async e => {
   const art = e.target.closest(".story"); if (!art) return;
@@ -472,6 +533,10 @@ $("#queue").addEventListener("click", async e => {
   if (!act){ if (art.querySelector(".drawer")) art.classList.toggle("open"); return; }
   if (act==="toggle"){ const o = art.classList.toggle("open"); e.target.closest(".more").setAttribute("aria-expanded", o); return; }
   if (act==="open") return;
+  if (act==="pick"){
+    const on = !picked.has(id); on ? picked.add(id) : picked.delete(id);
+    art.classList.toggle("picked", on); e.target.closest(".pick").setAttribute("aria-pressed", on); updatePickBar(); return;
+  }
   if (act==="script"){ scriptIt(item); return; }
   if (act==="skip"){
     await sb.from("raw_items").update({status:"skipped"}).eq("id",id);
