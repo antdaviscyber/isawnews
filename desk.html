@@ -2,10 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>if (window.top !== window.self) { document.documentElement.style.display = "none"; try { window.top.location = window.self.location.href; } catch (e) {} }</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#16181D">
 <title>ISAW News · Desk</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxNjE4MUQiLz48dGV4dCB4PSIzMiIgeT0iNDciIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLCdUaW1lcyBOZXcgUm9tYW4nLHNlcmlmIiBmb250LXdlaWdodD0iNzAwIiBmb250LXNpemU9IjQ0IiBmaWxsPSIjRkZEMTAwIj5JPC90ZXh0PjxyZWN0IHg9IjE0IiB5PSI1MiIgd2lkdGg9IjM2IiBoZWlnaHQ9IjQiIHJ4PSIyIiBmaWxsPSIjRkZEMTAwIi8+PC9zdmc+">
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAB0UlEQVR4nOyXu0scURTGv3N3ZrIazW4SHDYhZvMPmEcTXFKlCCYpRbDygViInY21tQj+AyIK2tooaC8LYqHrCxQsLER0V2Rdn+PqHs9VVyxEmHWdQdlfM/fOKb5v7tyZcz8DdwgLVrCii5lqCfwdRDaKAXOSQQkinjk7PexPC/kS5QdVVZ/+QdEAET7iCWHGFnLcnkptTt4asO3qOihMwUP4gv9rExQKfX5rBXlFnvwDPESvhHPCNcoMXrR4La7Rr9oq42aDoGrhE1pbyc70z4BoG3KJwjcoasBnXBv48/MEsa/OvbW5NQsT0+Vwg2sDhsGIRs4Rq3HwPpy7urd/QIgvBrG0bsItZEeqGQUw3JPC39jp1Ti+8Ar13YX9tZ/fHigZKBkoGSgZeHEGXPeCjvoDdDZkYL/L6WPVLam0wtB4BfpGQnBDwc2oWCgwduAXom0wcYJAdffVx3qT+PXNwWN4qFVrbYUcEvAL0aZwJPLFZHNeNlQYHiLBJJ2l7A+V3t7eIOY2eIwc5lq1dkBPjo4yq+Vlb2blu/otK1GJJ+QmnDbuJjcn9DyQLxwfZ9YtUw0GDOtM4rkj8bxSDL1GMbiO53EJIqNZ57Bpby+5nC9dAgAA///rZbQOAAAABklEQVQDAK/cn6eZkg73AAAAAElFTkSuQmCC">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -61,6 +66,14 @@
   .pick:hover{border-color:var(--mute)}
   .pick[aria-pressed=true]{background:var(--gold);border-color:var(--gold);color:var(--goldink)}
   .story.picked{background:rgba(255,209,0,.12);box-shadow:-14px 0 0 rgba(255,209,0,.12),inset 3px 0 0 var(--gold)}
+  .cpmodal{position:fixed;inset:0;z-index:60;background:rgba(22,24,29,.6);display:none;align-items:center;justify-content:center;padding:20px}
+  .cpmodal.on{display:flex}
+  .cpbox{background:var(--paper);border-radius:14px;max-width:640px;width:100%;max-height:88vh;display:flex;flex-direction:column;padding:22px;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+  .cpbox h2{margin:0;font-family:var(--serif);font-weight:500;font-size:22px}
+  .cpbox p{margin:0;color:var(--mute);font-size:15px}
+  .cpbox textarea{flex:1;min-height:180px;resize:none;border:1px solid var(--line);border-radius:8px;padding:10px;font:13px/1.4 ui-monospace,Menlo,monospace;background:var(--card);color:var(--ink)}
+  .cpbox .acts{display:flex;gap:10px;flex-wrap:wrap}
+  .cpbox .acts .btn{flex:1}
   .pickbar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--ink);color:#fff;border-top:1px solid #3A3F49;display:none}
   .pickbar.on{display:block}
   .pickbar-in{max-width:1060px;margin:0 auto;padding:12px 20px calc(env(safe-area-inset-bottom) + 12px);display:flex;gap:10px;align-items:center}
@@ -284,6 +297,12 @@
 
 <div id="load" class="load"><div class="box"><div class="wire"></div><div class="msg" id="loadMsg">Working</div><div class="sub" id="loadSub"></div></div></div>
 <div id="pickbar" class="pickbar" role="region" aria-label="Selected stories"><div class="pickbar-in"><span class="n" id="pickN"></span><button class="btn clear" id="pickClear">Deselect all</button><button class="btn send" id="pickSend">Send to Claude</button></div></div>
+<div id="cpmodal" class="cpmodal" role="dialog" aria-modal="true" aria-labelledby="cpTitle"><div class="cpbox">
+  <h2 id="cpTitle">Paste this into Claude</h2>
+  <p id="cpMsg"></p>
+  <textarea id="cpText" readonly></textarea>
+  <div class="acts"><button class="btn script" id="cpCopy">Copy again</button><button class="btn" id="cpOpen">Open Claude</button><button class="btn ghost" id="cpClose">Close</button></div>
+</div></div>
 <div id="toast" class="toast"></div>
 
 <script type="module">
@@ -292,7 +311,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // Groups near-duplicate stories. Returns [{lead, others:[...]}] in the order of each lead's first appearance.
 function groupStories(items){
   const STOP = new Set(("the a an and or of to in on for with from by at as is are was were be been it its this that these those after over into about out up down off new says say said could would should will may might can has have had not but than then their there they them his her your you our we us what when who why how more most also just now one two three first second under between amid against across during before while via per vs " +
-    "critical flaw flaws vulnerability vulnerabilities security cyber cybersecurity attack attacks attacker attackers hackers hacker hacked hack patch patches patched update updates warns warning urges urged finds found users user hit lets let allow allows allowed bug bugs data breach exploit exploited exploitation exploits report reports reported leak leaked ransomware malware campaign threat threats released release releases supply chain global network networks detection business company companies tech").split(" "));
+    "zero day days hits fixes fix fixed critical flaw flaws vulnerability vulnerabilities security cyber cybersecurity attack attacks attacker attackers hackers hacker hacked hack patch patches patched update updates warns warning urges urged finds found users user hit lets let allow allows allowed bug bugs data breach exploit exploited exploitation exploits report reports reported leak leaked ransomware malware campaign threat threats released release releases supply chain global network networks detection business company companies tech").split(" "));
   const clean = t => t.replace(/&#?\w+;/g," ").replace(/’|‘|'/g,"");
   const toks = t => {
     const out = [];
@@ -304,7 +323,7 @@ function groupStories(items){
       if (!hasDigit && low.length < 3) return;
       let k = low; if (!hasDigit && k.length > 4 && k.endsWith("s") && !k.endsWith("ss")) k = k.slice(0,-1);
       const camel = /[a-z][A-Z]/.test(w) || (/[A-Za-z]/.test(w) && hasDigit && w.length >= 5);
-      const numKey = !/[A-Za-z]/.test(w) && w.length >= 4;
+      const numKey = !/[A-Za-z]/.test(w) && w.length >= 4 && !/^20[2-3]\d$/.test(w);   // years are not a story key
       out.push({ k, key: camel || numKey });
     });
     return out;
@@ -318,9 +337,9 @@ function groupStories(items){
   const N = items.length, idf = k => Math.log(N / df.get(k));
   const groups = [];
   const near = (a, b) => {
-    let w = 0, n = 0, key = false;
-    a.forEach((isKey, k) => { if (b.has(k)) { w += idf(k); n++; if (isKey && df.get(k) >= 2 && df.get(k) <= 30) key = true; } });
-    return key || (n >= 3 && w >= 6) || (n >= 2 && w >= 7.5);
+    let w = 0, n = 0, key = false, rare = 0;
+    a.forEach((isKey, k) => { if (b.has(k)) { w += idf(k); n++; if (idf(k) >= 3.3) rare++; if (isKey && df.get(k) >= 2 && df.get(k) <= 30) key = true; } });
+    return key || (n >= 3 && w >= 8 && rare >= 2) || (n >= 2 && rare >= 2 && w >= 7.5);
   };
   items.forEach((it, i) => {
     const t = new Date(it.published_at).getTime();
@@ -458,33 +477,46 @@ function updatePickBar(){
   document.body.classList.toggle("picking", n > 0 && onWire);
   savePicked();
 }
-function sendPicked(){
-  const items = [...picked].map(id => queue.find(x => x.id === id)).filter(Boolean);
-  if (!items.length) return;
+function buildPickPrompt(items, compact){
   const clip = (s, n) => (s || "").length > n ? s.slice(0, n).trimEnd() + "…" : (s || "");
   const blocks = items.map((it, k) => {
-    const others = (alsoMap.get(it.id) || []).slice(0, 3).map(o => `   Also: ${o.sources?.name ?? "Source"}: ${o.url}`).join("\n");
-    return `${k + 1}. ${it.title}\n   Source: ${it.sources?.name ?? "the source"}\n   Link: ${it.url}` + (it.summary ? `\n   Feed summary: ${clip(it.summary, 240)}` : "") + (others ? `\n${others}` : "");
+    const gn = /news\.google\.com/.test(it.url || "");
+    const link = gn ? `none (this came via Google News and the link is only a redirect, so find the article by searching the exact headline above)` : it.url;
+    return `${k + 1}. ${it.title}\n   Source: ${gn ? "Google News (publisher is at the end of the headline)" : (it.sources?.name ?? "the source")}\n   Link: ${link}` + (!compact && it.summary && !gn ? `\n   Feed summary: ${clip(it.summary, 240)}` : "");
   }).join("\n\n");
-  const prompt = `I'm putting together a short-form video reel on cybersecurity and scam awareness, and I've picked ${items.length} ${items.length === 1 ? "story" : "stories"} from my news wire. They might be on the same subject, complement each other, or be separate topics for one multi-topic video.
+  return `I'm preparing a longer form piece, such as a solo spoken podcast episode where I talk through what has happened in security over the last few hours. It is not a short reel, so do not try to squeeze anything into a few minutes. I've picked ${items.length} ${items.length === 1 ? "story" : "stories"} from my news wire to work from.
 
 ${blocks}
 
 Please:
-1. Open each link and read the actual article so you have the real details, not just the summaries above.
-2. For each story, tell me plainly in a line or two whether it is good for a reel and why (timely, surprising, relatable, or a clear lesson).
-3. Tell me how they relate: the same subject, complementary, or separate. Say if any should be dropped.
-4. Suggest 2 or 3 ways to build ONE video from them (for example one story as the hook with the others as evidence, a roundup with a running theme, or a "this week" structure), each with a rough running order and length.
-5. Then STOP and ask me which structure I want and whether to drop anything. Do not write a script until I tell you to go ahead.`;
-  const url = "https://claude.ai/new?q=" + encodeURIComponent(prompt);
-  if (url.length > 7000){
-    (navigator.clipboard?.writeText(prompt) ?? Promise.reject()).then(
-      () => { toast("Too long for a link. Copied: paste it into the new chat"); window.open("https://claude.ai/new", "_blank", "noopener"); },
-      () => toast("Too many stories for one link. Try fewer.")
-    );
-    return;
+1. Read the actual article for each story so you have the real details. Open the link if you can. If a link will not open, or there is no link, use web search for the exact headline and publisher and read what you find. Check that what you read is the same story as the headline. At the top of your reply, list each number with how you got it (opened the link, found by search, or could not verify). Never guess or fill gaps from the headline alone, and say so if you could not verify one.
+2. Give me a short plain summary of each story: what happened, who is affected, and what a listener should do about it, if anything.
+3. Group the stories into natural themes (for example patch releases, breaches, nation-state activity) and point out any that are duplicates of the same event or look off-topic.
+4. Then STOP and ask me what I want to build: the format and length, the running order, what to lead with, what to drop, and how much detail each part gets. Do not propose a structure or write a script until I have answered.`;
+}
+function showPromptModal(prompt, copied){
+  $("#cpMsg").textContent = copied
+    ? "That is too many stories to pass in a link, so I have copied the prompt for you. Click in the Claude message box and paste (Cmd+V on Mac, Ctrl+V on Windows)."
+    : "That is too many stories to pass in a link, and your browser would not let me copy it. Click Copy again, then paste it into Claude.";
+  $("#cpText").value = prompt; $("#cpmodal").classList.add("on");
+  $("#cpCopy").onclick = async () => { try { await navigator.clipboard.writeText(prompt); } catch { $("#cpText").select(); document.execCommand("copy"); } toast("Copied"); };
+  $("#cpOpen").onclick = () => window.open("https://claude.ai/new", "_blank", "noopener");
+  $("#cpClose").onclick = () => $("#cpmodal").classList.remove("on");
+}
+async function sendPicked(){
+  const items = [...picked].map(id => queue.find(x => x.id === id)).filter(Boolean);
+  if (!items.length) return;
+  for (const compact of [false, true]){
+    const prompt = buildPickPrompt(items, compact);
+    const url = "https://claude.ai/new?q=" + encodeURIComponent(prompt);
+    if (url.length <= 7000){ window.open(url, "_blank", "noopener"); return; }
   }
-  window.open(url, "_blank", "noopener");
+  // Too long for a link: copy it, open a blank chat, and show the prompt with a clear paste instruction.
+  const prompt = buildPickPrompt(items, true);
+  window.open("https://claude.ai/new", "_blank", "noopener");    // open straight away so the browser does not block it
+  let copied = false;
+  try { await navigator.clipboard.writeText(prompt); copied = true; } catch {}
+  showPromptModal(prompt, copied);
 }
 $("#pickClear").onclick = () => { picked.clear(); document.querySelectorAll(".story.picked").forEach(a => { a.classList.remove("picked"); a.querySelector(".pick")?.setAttribute("aria-pressed", "false"); }); updatePickBar(); };
 $("#pickSend").onclick = sendPicked;
