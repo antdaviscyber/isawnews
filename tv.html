@@ -19,7 +19,7 @@
     --dim:rgba(246,246,243,.68); --faint:rgba(246,246,243,.18); --body2:rgba(246,246,243,.88);
     --tickbg:#F6F6F3; --tickfg:#16181D; --labbg:#FFD100; --labfg:#16181D; --tagbg:#F6F6F3; --tagfg:#16181D; --dot:#FFD100;
     --serif:"Newsreader",Georgia,serif; --head:"Hanken Grotesk",system-ui,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif;
-    --markfont:"Newsreader",Georgia,serif; --marksize:2.4rem; --markw:600; --marki:italic; --marksp:-.01em; --h2font:"Newsreader",Georgia,serif; --h2w:400; --h2size:1.9rem;
+    --markfont:"Newsreader",Georgia,serif; --marksize:2.4rem; --markw:600; --marki:italic; --marksp:-.01em; --h2font:"Newsreader",Georgia,serif; --h2w:400; --h2size:1.6rem;
   }
   html[data-skin="cyfr"]{
     --night:#1E1033; --deep:#140A24; --cream:#F8E7C0; --pink:#FF4696;
@@ -56,63 +56,72 @@
     --serif:"Newsreader",Georgia,serif; --head:"Hanken Grotesk",system-ui,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif;
     --markfont:"Newsreader",Georgia,serif; --marksize:2.4rem; --markw:600; --marki:italic; --marksp:-.01em; --h2font:"Newsreader",Georgia,serif; --h2w:400; --h2size:1.9rem;
   }
+  /* Recording mode (?mode=rec, or press D): the @antdaviscyber look with the brightness turned right down, so it sits quietly behind you on camera */
+  html[data-mode="rec"]{
+    --night:#070707; --deep:#000; --cream:#C9C9C3; --pink:#B39200;
+    --dim:rgba(201,201,195,.56); --faint:rgba(201,201,195,.15); --body2:rgba(201,201,195,.78);
+    --tickbg:#120F03; --tickfg:#B39200; --labbg:#000; --labfg:#B39200; --tagbg:#241F08; --tagfg:#C9A400; --dot:#B39200;
+  }
+  html[data-mode="rec"] .navlink,html[data-mode="rec"] .clock span:not(.stale){display:none}
   *{box-sizing:border-box;margin:0;padding:0}
-  /* 1rem = 24px at 1920x1080, scales with the screen */
-  html{font-size:min(1.25vw,2.222vh);background:var(--deep)}
+  /* 1rem = about 17px at 1920x1080, scales with the screen. ?scale=120 or the + and - keys make it bigger or smaller */
+  html{font-size:min(.9vw,1.6vh);background:var(--deep)}
   body{height:100vh;overflow:hidden;background:var(--night);color:var(--cream);font-family:var(--sans);cursor:default}
   body.idle{cursor:none}
 
   .stage{height:100vh;display:grid;grid-template-rows:auto 1fr auto}
 
-  .bar{display:flex;align-items:baseline;justify-content:space-between;padding:1.6rem 3rem 0}
+  .bar{display:flex;align-items:flex-start;justify-content:space-between;padding:1.5rem 3rem 0}
   .mark{font-family:var(--markfont);font-weight:var(--markw);font-size:var(--marksize);letter-spacing:var(--marksp);line-height:1}
   .mark i{font-style:var(--marki);margin-left:.45rem;color:var(--pink)}
-  .clock{font-size:1.3rem;color:var(--dim);font-variant-numeric:tabular-nums}
-  .clock b{color:var(--cream);font-weight:600;font-size:1.9rem;margin-right:.9rem}
+  .clock{display:flex;flex-direction:column;align-items:flex-end;gap:.25rem;font-variant-numeric:tabular-nums;text-align:right}
+  .clock b{color:var(--cream);font-weight:700;font-size:4.2rem;line-height:.95;letter-spacing:.02em}
+  .clock em{font-style:normal;font-size:1.5rem;font-weight:500;color:var(--cream)}
+  .clock span{font-size:.95rem;color:var(--dim)}
   .clock .stale{color:var(--pink)}
 
-  .body{display:grid;grid-template-columns:minmax(0,1fr) 25rem;gap:3.5rem;padding:1.2rem 3rem 1.6rem;min-height:0}
+  .body{display:grid;grid-template-columns:minmax(0,1fr) 27rem;gap:3.5rem;padding:1.2rem 3rem 1.6rem;min-height:0}
 
   .hero{position:relative;display:flex;flex-direction:column;justify-content:center;min-height:0;padding-bottom:1rem}
   .hero-in{transition:opacity .45s ease,transform .45s ease}
   .hero-in.out{opacity:0;transform:translateY(.8rem)}
-  .rate{display:flex;align-items:center;gap:1.1rem;margin-bottom:1.6rem}
+  .rate{display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem}
   .stars{display:flex;gap:.35rem}
-  .stars svg{width:3.4rem;height:3.4rem;display:block}
+  .stars svg{width:2.6rem;height:2.6rem;display:block}
   .stars .on{fill:var(--pink)}
   .stars .off{fill:none;stroke:var(--faint);stroke-width:5}
-  .tag{font-size:1.25rem;font-weight:600;background:var(--tagbg);color:var(--tagfg);padding:.2rem .85rem;border-radius:.3rem}
-  .fresh{font-size:1.25rem;font-weight:600;color:var(--pink);border:.15rem solid var(--pink);padding:.05rem .7rem;border-radius:.3rem}
-  .hero h1{font-family:var(--head);font-weight:700;font-size:3.9rem;line-height:1.06;letter-spacing:-.025em;max-width:50rem;text-wrap:balance}
-  .hero h1.m{font-size:3.3rem}
-  .hero h1.l{font-size:2.7rem;line-height:1.1}
-  .hero .why{margin-top:1.8rem;font-size:1.55rem;line-height:1.4;color:var(--dim);max-width:44rem}
-  .hero .src{margin-top:1.6rem;font-size:1.3rem;color:var(--cream);font-weight:600}
+  .tag{font-size:1.1rem;font-weight:600;background:var(--tagbg);color:var(--tagfg);padding:.2rem .85rem;border-radius:.3rem}
+  .fresh{font-size:1.1rem;font-weight:600;color:var(--pink);border:.15rem solid var(--pink);padding:.05rem .7rem;border-radius:.3rem}
+  .hero h1{font-family:var(--head);font-weight:700;font-size:3.3rem;line-height:1.08;letter-spacing:-.025em;max-width:50rem;text-wrap:balance}
+  .hero h1.m{font-size:2.9rem}
+  .hero h1.l{font-size:2.4rem;line-height:1.12}
+  .hero .why{margin-top:1.3rem;font-size:1.35rem;line-height:1.4;color:var(--dim);max-width:44rem}
+  .hero .src{margin-top:1.2rem;font-size:1.15rem;color:var(--cream);font-weight:600}
   .hero .src span{color:var(--dim);font-weight:400;margin-left:1rem}
 
   .next h2{font-family:var(--h2font);font-weight:var(--h2w);font-size:var(--h2size);margin-bottom:.9rem;color:var(--dim)}
   .next{display:flex;flex-direction:column;min-height:0;padding-top:1rem;overflow:hidden}
-  .q{border-top:.08rem solid var(--faint);padding:1rem 0 1.05rem;position:relative}
-  .q .mini{display:flex;gap:.18rem;margin-bottom:.45rem}
+  .q{border-top:.08rem solid var(--faint);padding:.75rem 0 .8rem;position:relative}
+  .q .mini{display:flex;gap:.18rem;margin-bottom:.35rem}
   .q .mini svg{width:.95rem;height:.95rem}
   .q .mini .on{fill:var(--pink)} .q .mini .off{fill:none;stroke:var(--faint);stroke-width:6}
-  .q p{font-size:1.28rem;line-height:1.28;font-weight:500;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-  .q small{display:block;margin-top:.4rem;font-size:1rem;color:var(--dim)}
-  .q.now::before{content:"";position:absolute;left:-1.1rem;top:1rem;bottom:1.05rem;width:.28rem;border-radius:.2rem;background:var(--faint)}
-  .q.now .fill{position:absolute;left:-1.1rem;top:1rem;width:.28rem;border-radius:.2rem;background:var(--pink);height:0}
+  .q p{font-size:1.1rem;line-height:1.26;font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .q small{display:block;margin-top:.3rem;font-size:.9rem;color:var(--dim)}
+  .q.now::before{content:"";position:absolute;left:-1.1rem;top:.75rem;bottom:.8rem;width:.28rem;border-radius:.2rem;background:var(--faint)}
+  .q.now .fill{position:absolute;left:-1.1rem;top:.75rem;width:.28rem;border-radius:.2rem;background:var(--pink);height:0}
     .q:not(.now) p{color:var(--body2)}
   .q.now p{color:var(--cream)}
 
-  .tick{display:flex;align-items:stretch;background:var(--tickbg);color:var(--tickfg);height:4.4rem;overflow:hidden}
-  .tick .lab{flex:none;display:flex;align-items:center;background:var(--labbg);color:var(--labfg);font-weight:700;font-size:1.5rem;padding:0 2rem;z-index:2}
+  .tick{display:flex;align-items:stretch;background:var(--tickbg);color:var(--tickfg);height:3.7rem;overflow:hidden}
+  .tick .lab{flex:none;display:flex;align-items:center;background:var(--labbg);color:var(--labfg);font-weight:700;font-size:1.3rem;padding:0 1.8rem;z-index:2}
   .tick .run{flex:1;overflow:hidden;position:relative}
   .track{position:absolute;left:0;top:0;bottom:0;display:flex;align-items:center;white-space:nowrap;will-change:transform;animation:run linear infinite}
-  .track span{font-size:1.65rem;font-weight:600;padding-right:1.2rem}
+  .track span{font-size:1.4rem;font-weight:600;padding-right:1.2rem}
   .track svg{width:1.1rem;height:1.1rem;fill:var(--dot);margin-right:1.2rem;flex:none}
   .track .item{display:flex;align-items:center}
   @keyframes run{to{transform:translateX(-50%)}}
 
-  .navlink{position:fixed;left:3rem;bottom:5.2rem;font-size:1rem;color:var(--dim);text-decoration:none;transition:opacity .4s}
+  .navlink{position:fixed;left:3rem;bottom:4.4rem;font-size:.95rem;color:var(--dim);text-decoration:none;transition:opacity .4s}
   body.idle .navlink{opacity:0}
   @media (prefers-reduced-motion:reduce){.navlink{transition:none}}
   /* Embedded in another page: ?embed=1 */
@@ -122,7 +131,7 @@
   .empty h1{font-family:var(--head);font-weight:700;font-size:4rem;margin-bottom:1rem}
   .empty p{font-size:1.5rem;color:var(--dim)}
 
-  .skinchip{position:fixed;right:3rem;bottom:5.2rem;font-size:1.1rem;font-weight:600;color:var(--cream);background:var(--faint);padding:.35rem .9rem;border-radius:.4rem;opacity:0;transition:opacity .3s;pointer-events:none}
+  .skinchip{position:fixed;right:3rem;bottom:4.4rem;font-size:1.1rem;font-weight:600;color:var(--cream);background:var(--faint);padding:.35rem .9rem;border-radius:.4rem;opacity:0;transition:opacity .3s;pointer-events:none}
   .skinchip.on{opacity:1}
   @media (prefers-reduced-motion:reduce){.hero-in{transition:none}.track{animation-duration:600s!important}}
 </style>
@@ -136,7 +145,7 @@
 <div class="stage">
   <header class="bar">
     <div class="mark"><span id="brandA">ISAW</span><i id="brandB">News</i></div>
-    <div class="clock"><b id="clock">--:--</b><span id="upd">Loading</span></div>
+    <div class="clock"><b id="clock">--:--</b><em id="date"></em><span id="upd">Loading</span></div>
   </header>
 
   <div class="body">
@@ -178,15 +187,39 @@ function applySkin(i, announce){
   if (announce){ const c = document.getElementById("skinchip"); c.textContent = k.name + "  (" + (skinI + 1) + "/" + SKINS.length + ")"; c.classList.add("on"); clearTimeout(chipT); chipT = setTimeout(() => c.classList.remove("on"), 2500); try { localStorage.setItem("isaw-tv-skin", k.id); } catch {} }
 }
 (function(){
-  let want = new URLSearchParams(location.search).get("skin"); if (!want){ try { want = localStorage.getItem("isaw-tv-skin"); } catch {} }
-  const i = SKINS.findIndex(k => k.id === want); applySkin(i < 0 ? 0 : i, false);
+  const Q = new URLSearchParams(location.search), ls = k => { try { return localStorage.getItem(k); } catch { return null; } }, save = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+  const chip = msg => { const c = document.getElementById("skinchip"); c.textContent = msg; c.classList.add("on"); clearTimeout(chipT); chipT = setTimeout(() => c.classList.remove("on"), 2500); };
+  const root = document.documentElement;
+
+  // Size: ?scale=120, or + and - on the keyboard. Remembered on this device.
+  let scale = Math.min(160, Math.max(60, +Q.get("scale") || +ls("isaw-tv-scale") || 100));
+  const applyScale = () => { root.style.fontSize = "min(" + (.9 * scale / 100).toFixed(3) + "vw," + (1.6 * scale / 100).toFixed(3) + "vh)"; };
+  applyScale();
+
+  // Skin: ?skin=cyfr. Recording mode always uses the @antdaviscyber skin.
+  const savedSkin = () => { const w = Q.get("skin") || ls("isaw-tv-skin"), i = SKINS.findIndex(k => k.id === w); return i < 0 ? 0 : i; };
+  let rec = (Q.get("mode") || ls("isaw-tv-mode")) === "rec" && Q.get("mode") !== "normal";
+  const applyMode = (on, announce) => {
+    rec = on; if (on) root.dataset.mode = "rec"; else root.removeAttribute("data-mode");
+    applySkin(on ? SKINS.findIndex(k => k.id === "adc") : savedSkin(), false);
+    save("isaw-tv-mode", on ? "rec" : "normal");
+    if (announce) chip(on ? "Recording mode: dimmed (press D to go back)" : "Normal brightness");
+  };
+  applyMode(rec, false);
+
   addEventListener("keydown", e => {
     if (e.key === "r" || e.key === "R" || e.key === "ArrowUp" || e.key === "ArrowDown"){
       const order = ["all","uk","us"]; REGION = order[(order.indexOf(REGION) + 1) % 3];
-      try { localStorage.setItem("isaw-tv-region", REGION); } catch {}
-      const c = document.getElementById("skinchip"); c.textContent = "Region: " + (REGION === "all" ? "All" : REGION.toUpperCase()); c.classList.add("on"); clearTimeout(chipT); chipT = setTimeout(() => c.classList.remove("on"), 2500);
+      save("isaw-tv-region", REGION);
+      chip("Region: " + (REGION === "all" ? "All" : REGION.toUpperCase()));
       sig = ""; apply(REGION === "all" ? allRows : allRows.filter(x => x.region === REGION));
     }
+    else if (e.key === "d" || e.key === "D") applyMode(!rec, true);
+    else if (e.key === "+" || e.key === "=" || e.key === "-" || e.key === "_"){
+      scale = Math.min(160, Math.max(60, scale + (e.key === "-" || e.key === "_" ? -10 : 10))); save("isaw-tv-scale", scale); applyScale();
+      chip("Size " + scale + "%"); if (items.length){ renderQueue(); buildTicker(); }
+    }
+    else if (rec) return;   // skins are locked while recording
     else if (e.key === "t" || e.key === "T" || e.key === "Enter" || e.key === "ArrowRight") applySkin(skinI + 1, true);
     else if (e.key === "ArrowLeft") applySkin(skinI - 1, true);
   });
@@ -195,7 +228,7 @@ function applySkin(i, announce){
 const SUPABASE_URL = "https://xvymazorpsuyylbliihw.supabase.co";
 const ANON = "sb_publishable_nllLKPRo7Tr6XYkA1wzIsw_X01mXhU0";
 
-// Options in the address bar: ?min=4  ?secs=20  ?hours=48  ?embed=1 (for iframes, see embed.html)
+// Options in the address bar: ?min=4  ?secs=20  ?hours=48  ?scale=110  ?mode=rec  ?embed=1 (for iframes, see embed.html)
 const P = new URLSearchParams(location.search);
 if (P.get("embed") === "1") document.documentElement.classList.add("embed");
 const MIN   = Math.min(5, Math.max(1, +P.get("min") || 3));
@@ -294,7 +327,7 @@ function show(i, animate = true){
 
 function renderQueue(){
   const q = $("#queue"); q.replaceChildren();
-  const rows = Math.min(items.length, 4);
+  const rows = Math.min(items.length, 12);   // the trim below drops any that would not fit
   for (let k = 0; k < rows; k++){
     const it = items[(idx + k) % items.length];
     const row = el("div","q" + (k === 0 ? " now" : ""));
@@ -309,7 +342,7 @@ function renderQueue(){
   [...q.children].reverse().forEach(r => { if (q.children.length > 1 && r.getBoundingClientRect().bottom > limit) r.remove(); });
   const f = q.querySelector(".fill");
   if (f){
-    const row = f.parentElement, h = row.clientHeight - parseFloat(getComputedStyle(row).fontSize) * 2.05;
+    const row = f.parentElement, h = row.clientHeight - parseFloat(getComputedStyle(row).fontSize) * 1.55;   // the row padding, top and bottom
     f.style.height = "0px"; f.style.transition = "none";
     requestAnimationFrame(() => requestAnimationFrame(() => {
       f.style.transition = `height ${SECS}s linear`; f.style.height = Math.max(h, 8) + "px";
@@ -346,6 +379,7 @@ function buildTicker(){
 function paintStatus(){
   const now = new Date();
   $("#clock").textContent = now.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+  $("#date").textContent = now.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
   const u = $("#upd");
   if (!lastOk){ u.textContent = "Connecting"; return; }
   const stale = Date.now() - lastOk > REFRESH_MS * 3;
