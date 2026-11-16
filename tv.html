@@ -82,8 +82,8 @@
 
   .body{display:grid;grid-template-columns:minmax(0,1fr) 27rem;gap:3.5rem;padding:1.2rem 3rem 1.6rem;min-height:0}
 
-  .hero{position:relative;display:flex;flex-direction:column;justify-content:center;min-height:0;padding-bottom:1rem}
-  .hero-in{transition:opacity .45s ease,transform .45s ease}
+  .hero{position:relative;display:flex;flex-direction:column;min-height:0;padding-bottom:.4rem}
+  .hero-in{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;transition:opacity .45s ease,transform .45s ease}
   .hero-in.out{opacity:0;transform:translateY(.8rem)}
   .rate{display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem}
   .stars{display:flex;gap:.35rem}
@@ -92,13 +92,25 @@
   .stars .off{fill:none;stroke:var(--faint);stroke-width:5}
   .tag{font-size:1.1rem;font-weight:600;background:var(--tagbg);color:var(--tagfg);padding:.2rem .85rem;border-radius:.3rem}
   .fresh{font-size:1.1rem;font-weight:600;color:var(--pink);border:.15rem solid var(--pink);padding:.05rem .7rem;border-radius:.3rem}
-  .hero h1{font-family:var(--head);font-weight:700;font-size:3.3rem;line-height:1.08;letter-spacing:-.025em;max-width:50rem;text-wrap:balance}
+  .hero h1{font-family:var(--head);font-weight:700;font-size:3.3rem;line-height:1.08;letter-spacing:-.025em;max-width:100%;text-wrap:balance}
   .hero h1.m{font-size:2.9rem}
   .hero h1.l{font-size:2.4rem;line-height:1.12}
-  .hero .why{margin-top:1.3rem;font-size:1.35rem;line-height:1.4;color:var(--dim);max-width:44rem}
+  .hero .why{margin-top:1.3rem;font-size:1.5rem;line-height:1.4;color:var(--body2);max-width:54rem}
+  .hero .detail{margin-top:.9rem;font-size:1.15rem;line-height:1.5;color:var(--dim);max-width:54rem}
   .hero .src{margin-top:1.2rem;font-size:1.15rem;color:var(--cream);font-weight:600}
   .hero .src span{color:var(--dim);font-weight:400;margin-left:1rem}
 
+  .pulse{flex:none;display:flex;align-items:flex-end;gap:2.4rem;border-top:.08rem solid var(--faint);padding:1.1rem 0 .3rem}
+  .pulse:empty{display:none}
+  .pstat b{display:block;font-size:2.8rem;font-weight:700;line-height:1;color:var(--cream);font-variant-numeric:tabular-nums}
+  .pstat span{display:block;white-space:nowrap;margin-top:.4rem;font-size:.95rem;line-height:1.25;color:var(--dim)}
+  .pbars{flex:1;min-width:0}
+  .pbars .cap{font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:.5rem}
+  .pbars .cols{display:flex;align-items:flex-end;gap:.25rem;height:4.6rem}
+  .pbars .cols i{flex:1;min-height:.2rem;border-radius:.15rem .15rem 0 0;background:var(--dim);opacity:.38}
+  .pbars .cols i.now{background:var(--pink);opacity:1}
+  .pbars .ax{display:flex;justify-content:space-between;margin-top:.4rem;font-size:.85rem;color:var(--dim)}
+  html.embed .pulse{display:none}
   .next h2{font-family:var(--h2font);font-weight:var(--h2w);font-size:var(--h2size);margin-bottom:.9rem;color:var(--dim)}
   .next{display:flex;flex-direction:column;min-height:0;padding-top:1rem;overflow:hidden}
   .q{border-top:.08rem solid var(--faint);padding:.75rem 0 .8rem;position:relative}
@@ -121,7 +133,7 @@
   .track .item{display:flex;align-items:center}
   @keyframes run{to{transform:translateX(-50%)}}
 
-  .navlink{position:fixed;left:3rem;bottom:4.4rem;font-size:.95rem;color:var(--dim);text-decoration:none;transition:opacity .4s}
+  .navlink{position:fixed;left:50%;transform:translateX(-50%);top:1.2rem;font-size:.95rem;color:var(--dim);text-decoration:none;transition:opacity .4s}
   body.idle .navlink{opacity:0}
   @media (prefers-reduced-motion:reduce){.navlink{transition:none}}
   /* Embedded in another page: ?embed=1 */
@@ -151,6 +163,7 @@
   <div class="body">
     <section class="hero" aria-live="polite">
       <div class="hero-in" id="hero"></div>
+      <div class="pulse" id="pulse"></div>
     </section>
     <aside class="next">
       <h2>Next up</h2>
@@ -217,7 +230,7 @@ function applySkin(i, announce){
     else if (e.key === "d" || e.key === "D") applyMode(!rec, true);
     else if (e.key === "+" || e.key === "=" || e.key === "-" || e.key === "_"){
       scale = Math.min(160, Math.max(60, scale + (e.key === "-" || e.key === "_" ? -10 : 10))); save("isaw-tv-scale", scale); applyScale();
-      chip("Size " + scale + "%"); if (items.length){ renderQueue(); buildTicker(); }
+      chip("Size " + scale + "%"); if (items.length){ renderQueue(); buildTicker(); fitHero(); }
     }
     else if (rec) return;   // skins are locked while recording
     else if (e.key === "t" || e.key === "T" || e.key === "Enter" || e.key === "ArrowRight") applySkin(skinI + 1, true);
@@ -267,7 +280,7 @@ async function load(){
     const r = await fetch(SUPABASE_URL + "/rest/v1/rpc/tv_feed_v2", {
       method:"POST",
       headers:{ apikey:ANON, Authorization:"Bearer " + ANON, "Content-Type":"application/json" },
-      body: JSON.stringify({ min_angle:MIN, max_age_hours:HOURS, max_items:40 })
+      body: JSON.stringify({ min_angle:MIN, max_age_hours:HOURS, max_items:120 })
     });
     if (!r.ok) throw new Error(r.status);
     allRows = (await r.json()).map(tidy);
@@ -292,6 +305,7 @@ function apply(rows){
   const newSig = rows.map(r => r.id).join(",");
   const currentId = items[idx]?.id;
   items = rows;
+  paintPulse();
   $("#tickLab").textContent = MIN === 5 ? "5 stars" : MIN + " stars and up";
   $("#empty").classList.toggle("on", !rows.length);
   if (newSig !== sig){
@@ -317,12 +331,55 @@ function show(i, animate = true){
     hero.append(rate, h);
     const why = it.angle_note && !/^triage failed/.test(it.angle_note) ? it.angle_note : "";
     if (why) hero.appendChild(el("p","why",why));
+    const more = detailOf(it); if (more && more !== why) hero.appendChild(el("p","detail",more));
     const src = el("div","src",it.source_name || ""); src.appendChild(el("span","",ago(it.published_at)));
     hero.appendChild(src);
     renderQueue();
     hero.classList.remove("out");
+    fitHero();
   };
   if (animate){ hero.classList.add("out"); setTimeout(paint, 450); } else paint();
+}
+
+// The feed summary, cleaned up. Skipped when it only repeats the headline (Google News does that).
+function detailOf(it){
+  let t = (it.summary || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&#8217;|&rsquo;/g, "\u2019").replace(/&[a-z#0-9]+;/gi, " ")
+    .replace(/\s*\[\.\.\.\]\s*$/, "").replace(/\s*The post .* appeared first on .*$/i, "").replace(/\s+/g, " ").trim();
+  if (t.length < 60) return "";
+  const norm = x => x.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  if (norm(t).startsWith(norm(it.title).slice(0, 40))) return "";
+  if (t.length > 380) t = t.slice(0, 380).replace(/\s+\S*$/, "") + "\u2026";
+  return t;
+}
+
+// Make the headline as big as the space allows, so a short story fills the screen and a long one still fits
+function fitHero(){
+  const box = $("#hero"), h1 = box.querySelector("h1");
+  if (!h1 || !box.clientHeight) return;
+  const fits = () => box.lastElementChild.getBoundingClientRect().bottom - box.firstElementChild.getBoundingClientRect().top <= box.clientHeight - 6 && h1.scrollWidth <= h1.clientWidth + 1;
+  // Biggest size depends on the height available: moderate on a wide screen, much bigger on a tall or square one
+  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize), top = Math.min(8, Math.max(3.3, box.clientHeight / rem * .085));
+  for (let sz = top; sz >= 2.1; sz -= .15){ h1.style.fontSize = sz.toFixed(2) + "rem"; if (fits()) break; }
+}
+addEventListener("resize", () => fitHero());
+
+// "Last 24 hours": a count, the five star count and one bar per hour, from the stories on screen
+function paintPulse(){
+  const box = $("#pulse"); box.replaceChildren();
+  const now = Date.now(), hrs = new Array(24).fill(0); let n = 0, top = 0;
+  items.forEach(r => {
+    const age = (now - new Date(r.published_at)) / 36e5;
+    if (!(age >= 0 && age < 24)) return;
+    n++; hrs[23 - Math.floor(age)]++; if (r.human_angle >= 5) top++;
+  });
+  if (!n) return;
+  const a = el("div","pstat"); a.append(el("b","",String(n)), el("span","","stories, 24 hours"));
+  const b = el("div","pstat"); b.append(el("b","",String(top)), el("span","","rated 5 stars"));
+  const c = el("div","pbars"), cols = el("div","cols"), mx = Math.max(...hrs, 1);
+  hrs.forEach((v, k) => { const i = document.createElement("i"); i.style.height = Math.max(4, v / mx * 100) + "%"; if (k === 23) i.className = "now"; cols.appendChild(i); });
+  const ax = el("div","ax"); ["24h ago","12h ago","now"].forEach(t => ax.appendChild(el("span","",t)));
+  c.append(el("div","cap","Stories per hour, " + (MIN === 5 ? "5 stars" : MIN + " stars and up")), cols, ax);
+  box.append(a, b, c);
 }
 
 function renderQueue(){
@@ -360,7 +417,7 @@ function buildTicker(){
   if (!items.length) return;
   const mk = () => {
     const f = document.createDocumentFragment();
-    items.forEach(it => {
+    items.slice(0, 40).forEach(it => {
       const w = el("div","item");
       const s = document.createElementNS("http://www.w3.org/2000/svg","svg");
       const u = document.createElementNS("http://www.w3.org/2000/svg","use"); u.setAttribute("href","#star");
@@ -377,6 +434,7 @@ function buildTicker(){
 }
 
 function paintStatus(){
+  paintPulse(); fitHero();
   const now = new Date();
   $("#clock").textContent = now.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
   $("#date").textContent = now.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
